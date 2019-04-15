@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>    
     <Version>1.0.0</Version>
     <Authors>Bwrx</Authors>
     <Description>High-throughput data publisher</Description>
@@ -9,6 +9,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/daishisystems/bwrx</PackageProjectUrl>
     <PackageLicense>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicense>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
     <PackageTags>bwrx</PackageTags>
   </PropertyGroup>
 
