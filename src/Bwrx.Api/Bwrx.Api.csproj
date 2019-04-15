@@ -10,7 +10,6 @@
     <PackageProjectUrl>https://github.com/daishisystems/bwrx</PackageProjectUrl>
     <PackageLicense>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicense>
     <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
-    <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
     <PackageTags>bwrx</PackageTags>
   </PropertyGroup>
 
