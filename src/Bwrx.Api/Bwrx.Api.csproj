@@ -5,7 +5,7 @@
     <Version>1.0.0</Version>
     <Authors>Bwrx</Authors>
     <Description>High-throughput data publisher</Description>
-    <Copyright>Copyright (c) 2019 Codehaus Ltd.</Copyright>
+    <Copyright>Copyright (c) 2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
