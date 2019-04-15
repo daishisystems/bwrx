@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bwrx.Api", "src\Bwrx.Api\Bwrx.Api.csproj", "{20A721E0-E985-4209-9036-3202832884F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bwrx.Tests", "tests\Bwrx.Tests\Bwrx.Tests.csproj", "{2013B4D3-4858-4B42-8EA9-119E9FB790C3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{20A721E0-E985-4209-9036-3202832884F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20A721E0-E985-4209-9036-3202832884F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20A721E0-E985-4209-9036-3202832884F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20A721E0-E985-4209-9036-3202832884F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ABB67A30-7F71-45FC-BF0F-B4D34E233736}
+	EndGlobalSection
+EndGlobal
