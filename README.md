@@ -84,7 +84,7 @@ Errors are handled implicitly, so that the your application process flow is not 
 > The event cache could not be cleared explicitly
 ##### `Agent.Instance.EventMetadataUploadJobExecutionFailed`
 > The batch-upload background task occurrence did not execute successfully
-## Subscribing to Notifications
+### Subscribing to Notifications
 Your application can subscribe to any data-streaming operation
 ##### Agent.Instance.DataTransmitted
 > A batch of events has just been transmitted to Google Cloud Pub/Sub
