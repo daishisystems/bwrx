@@ -70,7 +70,7 @@ EventMetaCache.Instance.Add(
 	Request.QueryString.Value,
 	headers);
 ```
-## Error Handling
+### Error Handling
 Errors are handled implicitly, so that the your application process flow is not interrupted. You can subscribe to any thrown error
 ##### `Agent.Instance.AddEventMetaFailed`
 > An event could not be added to the cache
