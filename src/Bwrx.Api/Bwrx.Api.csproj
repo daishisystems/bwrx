@@ -7,6 +7,9 @@
     <Description>High-throughput data publisher</Description>
     <Copyright>Copyright (c) 2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/daishisystems/bwrx</PackageProjectUrl>
+    <PackageLicense>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicense>
+    <PackageTags>bwrx</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
