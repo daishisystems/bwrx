@@ -21,6 +21,8 @@
         public delegate void InitialisationFailedEventHandler(object sender,
             EventTransmissionClientInitialisationFailedEventArgs e);
 
+        public delegate void IpAddressAddedToBlacklistHandler(object sender, IpAddressAddedToBlacklistEventArgs e);
+
         public delegate void TransmissionFailedEventHandler(object sender, EventTransmissionFailedEventArgs e);
     }
 }

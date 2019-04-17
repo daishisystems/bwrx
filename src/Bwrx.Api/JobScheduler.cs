@@ -22,7 +22,7 @@ namespace Bwrx.Api
 
         public static JobScheduler Instance => InnerDataUploader.Value;
 
-        public event JobSchedulerStartFailedEventHandler DataUploaderStartFailed;
+        public event JobSchedulerStartFailedEventHandler EventMetadataUploadStartFailed;
 
         public event EventMetadataUploadJobExecutionFailedEventHandler EventMetadataUploadJobExecutionFailed;
 
@@ -88,7 +88,7 @@ namespace Bwrx.Api
 
         private void OnDataUploaderStartFailed(JobSchedulerStartFailedEventArgs e)
         {
-            DataUploaderStartFailed?.Invoke(this, e);
+            EventMetadataUploadStartFailed?.Invoke(this, e);
         }
     }
 }
