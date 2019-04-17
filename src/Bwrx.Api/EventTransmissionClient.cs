@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Api.Gax;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.PubSub.V1;
 using Google.Protobuf;
 using Grpc.Auth;
+using Grpc.Core;
 using Newtonsoft.Json;
 
 namespace Bwrx.Api
@@ -17,7 +19,7 @@ namespace Bwrx.Api
             new Lazy<EventTransmissionClient>(() => new EventTransmissionClient());
 
         private PublisherClient _publisher;
-        private TopicName _topicName;
+        private SubscriberClient _subscriber;
 
         public static EventTransmissionClient Instance => InnerEventTransmissionClient.Value;
 
@@ -31,16 +33,16 @@ namespace Bwrx.Api
 
         public async Task InitAsync(
             CloudServiceCredentials cloudServiceCredentials,
-            ClientConfigSettings eventTransmissionClientConfigSettings)
+            ClientConfigSettings clientConfigSettings)
         {
             if (cloudServiceCredentials == null)
                 throw new ArgumentNullException(nameof(cloudServiceCredentials));
-            if (eventTransmissionClientConfigSettings == null)
-                throw new ArgumentNullException(nameof(eventTransmissionClientConfigSettings));
-            if (string.IsNullOrEmpty(eventTransmissionClientConfigSettings.ProjectId))
-                throw new ArgumentNullException(nameof(eventTransmissionClientConfigSettings.ProjectId));
-            if (string.IsNullOrEmpty(eventTransmissionClientConfigSettings.TopicId))
-                throw new ArgumentNullException(nameof(eventTransmissionClientConfigSettings.TopicId));
+            if (clientConfigSettings == null)
+                throw new ArgumentNullException(nameof(clientConfigSettings));
+            if (string.IsNullOrEmpty(clientConfigSettings.ProjectId))
+                throw new ArgumentNullException(nameof(clientConfigSettings.ProjectId));
+            if (string.IsNullOrEmpty(clientConfigSettings.PublisherTopicId))
+                throw new ArgumentNullException(nameof(clientConfigSettings.PublisherTopicId));
 
             try
             {
@@ -48,25 +50,106 @@ namespace Bwrx.Api
                     .FromJson(JsonConvert.SerializeObject(cloudServiceCredentials))
                     .CreateScoped(PublisherServiceApiClient.DefaultScopes);
 
-                var settings = new PublisherClient.Settings
+                var publisherSettings = new PublisherClient.Settings
                 {
                     BatchingSettings = new BatchingSettings(
-                        eventTransmissionClientConfigSettings.ElementCountThreshold,
-                        eventTransmissionClientConfigSettings.RequestByteThreshold,
-                        TimeSpan.FromSeconds(eventTransmissionClientConfigSettings.DelayThreshold))
+                        clientConfigSettings.ElementCountThreshold,
+                        clientConfigSettings.RequestByteThreshold,
+                        TimeSpan.FromSeconds(clientConfigSettings.DelayThreshold))
                 };
 
-                var clientCreationSettings = new PublisherClient.ClientCreationSettings(
+                var publisherClientCreationSettings = new PublisherClient.ClientCreationSettings(
                     null,
                     null,
                     credential.ToChannelCredentials());
 
-                _topicName = new TopicName(
-                    eventTransmissionClientConfigSettings.ProjectId,
-                    eventTransmissionClientConfigSettings.TopicId);
+                var publisherTopicName = new TopicName(
+                    clientConfigSettings.ProjectId,
+                    clientConfigSettings.PublisherTopicId);
 
-                _publisher = await PublisherClient.CreateAsync(_topicName, clientCreationSettings, settings);
+                _publisher = await PublisherClient.CreateAsync(
+                    publisherTopicName,
+                    publisherClientCreationSettings,
+                    publisherSettings);
 
+                Initialised = true;
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "An error occurred while initializing the data transmission client.";
+                OnInitialisationFailed(
+                    new EventTransmissionClientInitialisationFailedEventArgs(new Exception(errorMessage, exception)));
+            }
+        }
+
+        public async Task InitAsync(
+            CloudServiceCredentials cloudServiceCredentials,
+            ClientConfigSettings clientConfigSettings,
+            string subscriptionId)
+        {
+            if (cloudServiceCredentials == null)
+                throw new ArgumentNullException(nameof(cloudServiceCredentials));
+            if (clientConfigSettings == null)
+                throw new ArgumentNullException(nameof(clientConfigSettings));
+            if (string.IsNullOrEmpty(clientConfigSettings.ProjectId))
+                throw new ArgumentNullException(nameof(clientConfigSettings.ProjectId));
+            if (string.IsNullOrEmpty(clientConfigSettings.PublisherTopicId))
+                throw new ArgumentNullException(nameof(clientConfigSettings.PublisherTopicId));
+            if (string.IsNullOrEmpty(subscriptionId))
+                throw new ArgumentNullException(nameof(subscriptionId));
+
+            try
+            {
+                var credential = GoogleCredential
+                    .FromJson(JsonConvert.SerializeObject(cloudServiceCredentials))
+                    .CreateScoped(PublisherServiceApiClient.DefaultScopes);
+
+                var publisherSettings = new PublisherClient.Settings
+                {
+                    BatchingSettings = new BatchingSettings(
+                        clientConfigSettings.ElementCountThreshold,
+                        clientConfigSettings.RequestByteThreshold,
+                        TimeSpan.FromSeconds(clientConfigSettings.DelayThreshold))
+                };
+
+                var publisherClientCreationSettings = new PublisherClient.ClientCreationSettings(
+                    null,
+                    null,
+                    credential.ToChannelCredentials());
+
+                var publisherTopicName = new TopicName(
+                    clientConfigSettings.ProjectId,
+                    clientConfigSettings.PublisherTopicId);
+
+                _publisher = await PublisherClient.CreateAsync(
+                    publisherTopicName,
+                    publisherClientCreationSettings,
+                    publisherSettings);
+
+                var subscriberTopicName = new TopicName(
+                    clientConfigSettings.ProjectId,
+                    clientConfigSettings.SubscriberTopicId);
+
+                var subscriptionName = new SubscriptionName(clientConfigSettings.ProjectId, subscriptionId);
+                try
+                {
+                    var channel = new Channel(
+                        SubscriberServiceApiClient.DefaultEndpoint.Host,
+                        SubscriberServiceApiClient.DefaultEndpoint.Port, credential.ToChannelCredentials());
+                    var client = SubscriberServiceApiClient.Create(channel);
+                    client.CreateSubscription(subscriptionName, subscriberTopicName, null, null);
+                }
+                catch (RpcException e) when (e.Status.StatusCode == StatusCode.AlreadyExists)
+                {
+                    // ignored
+                }
+
+                var subscriberClientCreationSettings = new SubscriberClient.ClientCreationSettings(
+                    null,
+                    null,
+                    credential.ToChannelCredentials());
+
+                _subscriber = await SubscriberClient.CreateAsync(subscriptionName, subscriberClientCreationSettings);
                 Initialised = true;
             }
             catch (Exception exception)
@@ -98,6 +181,27 @@ namespace Bwrx.Api
                 OnTransmissionFailed(
                     new EventTransmissionFailedEventArgs(new Exception(errorMessage,
                         exception)));
+            }
+        }
+
+        public async Task SubscribeAsync()
+        {
+            await _subscriber.StartAsync(GetEvent);
+        }
+
+        private static Task<SubscriberClient.Reply> GetEvent(
+            PubsubMessage msg,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                // todo: new handler
+                return Task.FromResult(SubscriberClient.Reply.Ack);
+            }
+            catch
+            {
+                // todo: new handler
+                return null;
             }
         }
 

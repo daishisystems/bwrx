@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>    
+    <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
     <Version>1.0.0</Version>
     <Authors>Bwrx</Authors>
     <Description>High-throughput data publisher</Description>

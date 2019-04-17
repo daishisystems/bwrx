@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 #endif
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -49,15 +50,28 @@ namespace Bwrx.Api
             EventTransmissionClient.Instance.TransmissionFailed += TransmissionFailed;
             EventTransmissionClient.Instance.DataTransmitted += DataTransmitted;
 
+            string subscriptionId;
+            try
+            {
+                subscriptionId = Environment.MachineName;
+            }
+            catch (Exception)
+            {
+                subscriptionId = Guid.NewGuid().ToString();
+            }
+
             EventTransmissionClient.Instance.InitAsync(
                 cloudServiceCredentials,
-                clientConfigSettings
+                clientConfigSettings,
+                subscriptionId
             ).Wait();
 
             JobScheduler.Instance.StartAsync(
                 EventTransmissionClient.Instance,
                 EventMetaCache.Instance,
                 clientConfigSettings).Wait();
+
+            ThreadPool.QueueUserWorkItem(SubscribeAsync);
         }
 
         public void AddEvent<T>(
@@ -95,6 +109,11 @@ namespace Bwrx.Api
             {
                 throw new JsonSerializationException($"Could not edit the JSON payload: {json}", exception);
             }
+        }
+
+        private static void SubscribeAsync(object stateInfo)
+        {
+            EventTransmissionClient.Instance.SubscribeAsync().Wait();
         }
 
 #if (NETCOREAPP2_1 || NETCOREAPP2_2)

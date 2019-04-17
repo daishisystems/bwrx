@@ -38,7 +38,6 @@ namespace Bwrx.Api
             if (eventMetadataPayload == null)
                 throw new ArgumentNullException(nameof(eventMetadataPayload));
             if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
-            if (string.IsNullOrEmpty(queryString)) throw new ArgumentNullException(nameof(queryString));
             if (httpHeaders == null)
                 throw new ArgumentNullException(nameof(httpHeaders));
 
