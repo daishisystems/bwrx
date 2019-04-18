@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Google.Cloud.BigQuery.V2;
 
 namespace Bwrx.Api
 {
@@ -24,6 +25,12 @@ namespace Bwrx.Api
         public event EventHandlers.AddIpAddressFailedEventHandler AddIpAddressFailed;
 
         public event EventHandlers.ListUpdatedHandler BlacklistUpdated;
+
+        public event EventHandlers.GotLatestListEventHandler GotLatestBlacklist;
+
+        public event EventHandlers.GetLatestListFailedEventHandler GetLatestBlacklistFailed;
+
+        public event EventHandlers.CouldNotParseIpAddressEventHandler CouldNotParseIpAddress;
 
         public bool IsIpAddressBlacklisted(IPAddress ipAddressToFind)
         {
@@ -58,6 +65,46 @@ namespace Bwrx.Api
             OnBlacklistUpdated(new EventArgs());
         }
 
+        public IEnumerable<IPAddress> GetLatest(BigQueryClient bigQueryClient)
+        {
+            if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
+
+            const string getBlacklistQuery = @"SELECT
+                  ipaddress
+                FROM
+                  ipaddress_lists.blacklist
+                WHERE
+                  _PARTITIONTIME BETWEEN TIMESTAMP_TRUNC(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 * 24 HOUR),DAY)
+                  AND TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(),DAY);";
+
+            var blacklist = new List<IPAddress>();
+            try
+            {
+                var data = bigQueryClient.ExecuteQuery(getBlacklistQuery, null);
+
+                foreach (var row in data)
+                {
+                    const string ipAddressMetaName = "ipaddress";
+                    var ipAddressMeta = row[ipAddressMetaName].ToString();
+
+                    var canParse = IPAddress.TryParse(ipAddressMeta, out var ipAddress);
+                    if (canParse)
+                        blacklist.Add(ipAddress);
+                    else
+                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(ipAddressMeta));
+                }
+
+                OnGotLatestBlacklist(new GotLatestListEventArgs(blacklist.Count));
+                return blacklist;
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "Could not get the latest blacklist.";
+                OnGetBlacklistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
+                return blacklist;
+            }
+        }
+
         private void OnIpAddressAdded(IpAddressAddedEventArgs e)
         {
             IpAddressAdded?.Invoke(this, e);
@@ -71,6 +118,21 @@ namespace Bwrx.Api
         private void OnBlacklistUpdated(EventArgs e)
         {
             BlacklistUpdated?.Invoke(this, e);
+        }
+
+        private void OnGotLatestBlacklist(GotLatestListEventArgs e)
+        {
+            GotLatestBlacklist?.Invoke(this, e);
+        }
+
+        private void OnGetBlacklistFailed(GetLatestListFailedEventArgs e)
+        {
+            GetLatestBlacklistFailed?.Invoke(this, e);
+        }
+
+        private void OnCouldNotParseIpAddress(CouldNotParseIpAddressEventArgs e)
+        {
+            CouldNotParseIpAddress?.Invoke(this, e);
         }
     }
 }

@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bwrx.Api", "src\Bwrx.Api\Bwrx.Api.csproj", "{20A721E0-E985-4209-9036-3202832884F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bwrx.Api", "src\Bwrx.Api\Bwrx.Api.csproj", "{20A721E0-E985-4209-9036-3202832884F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bwrx.Tests", "tests\Bwrx.Tests\Bwrx.Tests.csproj", "{2013B4D3-4858-4B42-8EA9-119E9FB790C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bwrx.Tests", "tests\Bwrx.Tests\Bwrx.Tests.csproj", "{2013B4D3-4858-4B42-8EA9-119E9FB790C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "src\WebApplication1\WebApplication1.csproj", "{7103EA3E-936A-4773-8154-68C20E592A2B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2013B4D3-4858-4B42-8EA9-119E9FB790C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7103EA3E-936A-4773-8154-68C20E592A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7103EA3E-936A-4773-8154-68C20E592A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7103EA3E-936A-4773-8154-68C20E592A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7103EA3E-936A-4773-8154-68C20E592A2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
