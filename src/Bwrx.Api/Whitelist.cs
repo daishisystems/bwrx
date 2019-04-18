@@ -6,16 +6,16 @@ using System.Net;
 
 namespace Bwrx.Api
 {
-    public class Blacklist
+    public class Whitelist
     {
-        private static readonly Lazy<Blacklist> Lazy = new Lazy<Blacklist>(() => new Blacklist());
+        private static readonly Lazy<Whitelist> Lazy = new Lazy<Whitelist>(() => new Whitelist());
 
-        public Blacklist()
+        public Whitelist()
         {
             IpAddresses = new ConcurrentBag<IPAddress>();
         }
 
-        public static Blacklist Instance => Lazy.Value;
+        public static Whitelist Instance => Lazy.Value;
 
         public ConcurrentBag<IPAddress> IpAddresses { get; private set; }
 
@@ -23,22 +23,14 @@ namespace Bwrx.Api
 
         public event EventHandlers.AddIpAddressFailedEventHandler AddIpAddressFailed;
 
-        public event EventHandlers.ListUpdatedHandler BlacklistUpdated;
+        public event EventHandlers.ListUpdatedHandler WhitelistUpdated;
 
-        public bool IsIpAddressBlacklisted(IPAddress ipAddressToFind)
-        {
-            return IpAddresses.Contains(ipAddressToFind);
-        }
-
-        public bool AddIPAddress(
-            IPAddress ipAddress,
-            IEnumerable<IPAddress> whitelistedIPAddresses = null)
+        public bool AddIPAddress(IPAddress ipAddress)
         {
             if (ipAddress == null) throw new ArgumentNullException(nameof(ipAddress));
 
             try
             {
-                if (whitelistedIPAddresses != null && whitelistedIPAddresses.Contains(ipAddress)) return false;
                 if (IpAddresses.Contains(ipAddress)) return false;
                 IpAddresses.Add(ipAddress);
                 OnIpAddressAdded(new IpAddressAddedEventArgs(ipAddress));
@@ -46,16 +38,16 @@ namespace Bwrx.Api
             }
             catch (Exception e)
             {
-                var exception = new Exception("Failed to add IP address to blacklist.", e);
+                var exception = new Exception("Failed to add IP address to whitelist.", e);
                 OnAddIpAddressFailed(new AddIpAddressFailedEventArgs(exception, ipAddress));
                 return false;
             }
         }
 
-        public void UpDate(IEnumerable<IPAddress> blacklistedIPAddresses)
+        public void UpDate(IEnumerable<IPAddress> whiteListedIPAddresses)
         {
-            IpAddresses = new ConcurrentBag<IPAddress>(blacklistedIPAddresses);
-            OnBlacklistUpdated(new EventArgs());
+            IpAddresses = new ConcurrentBag<IPAddress>(whiteListedIPAddresses);
+            OnWhitelistUpdated(new EventArgs());
         }
 
         private void OnIpAddressAdded(IpAddressAddedEventArgs e)
@@ -68,9 +60,9 @@ namespace Bwrx.Api
             AddIpAddressFailed?.Invoke(this, e);
         }
 
-        private void OnBlacklistUpdated(EventArgs e)
+        private void OnWhitelistUpdated(EventArgs e)
         {
-            BlacklistUpdated?.Invoke(this, e);
+            WhitelistUpdated?.Invoke(this, e);
         }
     }
 }
