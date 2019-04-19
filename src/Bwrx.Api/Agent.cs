@@ -6,7 +6,8 @@ using System.Collections.Specialized;
 #endif
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.BigQuery.V2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -24,7 +25,11 @@ namespace Bwrx.Api
         private static readonly Lazy<Agent> Lazy =
             new Lazy<Agent>(() => new Agent());
 
+        public event EventHandlers.CloudDatabaseConnectionFailedEventHandler CloudDatabaseConnectionFailed;
+
         public static Agent Instance => Lazy.Value;
+
+        private BigQueryClient _bigQueryClient;
 
         public event EventHandlers.EventMetaAddedEventHandler EventMetaAdded;
         public event EventHandlers.AddEventMetaFailedEventHandler AddEventMetaFailed;
@@ -35,6 +40,25 @@ namespace Bwrx.Api
         public event EventHandlers.InitialisationFailedEventHandler InitialisationFailed;
         public event EventHandlers.TransmissionFailedEventHandler TransmissionFailed;
         public event EventHandlers.DataTransmittedEventHandler DataTransmitted;
+
+        public event JobScheduler.JobSchedulerStartFailedEventHandler JobSchedulerStartFailed;
+        public event EventMetadataPublishJobExecutionFailedEventHandler EventMetadataPublishJobExecutionFailed;
+        public event GetBlacklistJobExecutionFailedEventHandler GetBlacklistJobExecutionFailed;
+        public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
+
+        public event EventHandlers.IpAddressAddedHandler BlacklistIpAddressAdded;
+        public event EventHandlers.AddIpAddressFailedEventHandler BlacklistAddIpAddressFailed;
+        public event EventHandlers.ListUpdatedHandler BlacklistListUpdated;
+        public event EventHandlers.GotLatestListEventHandler BlacklistGotLatestList;
+        public event EventHandlers.GetLatestListFailedEventHandler BlacklistGetLatestListFailed;
+        public event EventHandlers.CouldNotParseIpAddressEventHandler BlacklistCouldNotParseIpAddress;
+
+        public event EventHandlers.IpAddressAddedHandler WhitelistIpAddressAdded;
+        public event EventHandlers.AddIpAddressFailedEventHandler WhitelistAddIpAddressFailed;
+        public event EventHandlers.ListUpdatedHandler WhitelistListUpdated;
+        public event EventHandlers.GotLatestListEventHandler WhitelistGotLatestList;
+        public event EventHandlers.GetLatestListFailedEventHandler WhitelistGetLatestListFailed;
+        public event EventHandlers.CouldNotParseIpAddressEventHandler WhitelistCouldNotParseIpAddress;
 
         public void Start(
             CloudServiceCredentials cloudServiceCredentials,
@@ -50,28 +74,55 @@ namespace Bwrx.Api
             EventTransmissionClient.Instance.TransmissionFailed += TransmissionFailed;
             EventTransmissionClient.Instance.DataTransmitted += DataTransmitted;
 
-            string subscriptionId;
-            try
-            {
-                subscriptionId = Environment.MachineName;
-            }
-            catch (Exception)
-            {
-                subscriptionId = Guid.NewGuid().ToString();
-            }
+            JobScheduler.Instance.JobSchedulerStartFailed += JobSchedulerStartFailed;
+            JobScheduler.Instance.EventMetadataPublishJobExecutionFailed += EventMetadataPublishJobExecutionFailed;
+            JobScheduler.Instance.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
+            JobScheduler.Instance.GetWhitelistJobExecutionFailed += GetWhitelistJobExecutionFailed;
+
+            Blacklist.Instance.IpAddressAdded += BlacklistIpAddressAdded;
+            Blacklist.Instance.AddIpAddressFailed += BlacklistAddIpAddressFailed;
+            Blacklist.Instance.BlacklistUpdated += BlacklistListUpdated;
+            Blacklist.Instance.GotLatestBlacklist += BlacklistGotLatestList;
+            Blacklist.Instance.GetLatestBlacklistFailed += BlacklistGetLatestListFailed;
+            Blacklist.Instance.CouldNotParseIpAddress += BlacklistCouldNotParseIpAddress;
+
+            Whitelist.Instance.IpAddressAdded += WhitelistIpAddressAdded;
+            Whitelist.Instance.AddIpAddressFailed += WhitelistAddIpAddressFailed;
+            Whitelist.Instance.WhitelistUpdated += WhitelistListUpdated;
+            Whitelist.Instance.GotLatestWhitelist += WhitelistGotLatestList;
+            Whitelist.Instance.GetLatestWhitelistFailed += WhitelistGetLatestListFailed;
+            Whitelist.Instance.CouldNotParseIpAddress += WhitelistCouldNotParseIpAddress;
 
             EventTransmissionClient.Instance.InitAsync(
                 cloudServiceCredentials,
-                clientConfigSettings,
-                subscriptionId
+                clientConfigSettings
             ).Wait();
+
+            if (!EventTransmissionClient.Instance.Initialised) return;
+
+            var bigQueryConnectionEstablished = false;
+            try
+            {
+                var googleCredential = GoogleCredential.FromJson(JsonConvert.SerializeObject(cloudServiceCredentials));
+                _bigQueryClient = BigQueryClient.Create(clientConfigSettings.ProjectId, googleCredential);
+                bigQueryConnectionEstablished = true;
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "Could not establish a connection to the cloud database.";
+                OnCloudDatabaseConnectionFailed(
+                    new CloudDatabaseConnectionFailedEventArgs(new Exception(errorMessage, exception)));
+            }
+
+            if (!bigQueryConnectionEstablished) return;
 
             JobScheduler.Instance.StartAsync(
                 EventTransmissionClient.Instance,
+                _bigQueryClient,
                 EventMetaCache.Instance,
+                Blacklist.Instance,
+                Whitelist.Instance,
                 clientConfigSettings).Wait();
-
-            ThreadPool.QueueUserWorkItem(SubscribeAsync);
         }
 
         public void AddEvent<T>(
@@ -172,5 +223,9 @@ namespace Bwrx.Api
             return gotHeaderValues ? headerValues.LastOrDefault() : null;
         }
 #endif
+        private void OnCloudDatabaseConnectionFailed(CloudDatabaseConnectionFailedEventArgs e)
+        {
+            CloudDatabaseConnectionFailed?.Invoke(this, e);
+        }
     }
 }

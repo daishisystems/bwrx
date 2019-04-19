@@ -7,9 +7,11 @@
         public string SubscriberTopicId { get; set; }
         public long ElementCountThreshold { get; set; } = 1000;
         public long RequestByteThreshold { get; set; } = 5242880; // MAX bytes 10485760 / 2
-        public int DelayThreshold { get; set; } = 3;
+        public int EventPublishDelayThreshold { get; set; } = 3;
+        public int GetBlacklistTimeInterval { get; set; } = 5;
+        public int GetWhitelistTimeInterval { get; set; } = 5;
         public int MaxThreadCount { get; set; } = 45;
-        public int ExecutionTimeInterval { get; set; } = 1;
+        public int PublishExecutionTimeInterval { get; set; } = 1;
         public int MaxQueueLength { get; set; } = 175000;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
 
 namespace Bwrx.Api
@@ -57,7 +58,7 @@ namespace Bwrx.Api
             OnWhitelistUpdated(new EventArgs());
         }
 
-        public IEnumerable<IPAddress> GetLatest(BigQueryClient bigQueryClient) // todo: Abstract this
+        public async Task<IEnumerable<IPAddress>> GetLatestAsync(BigQueryClient bigQueryClient) // todo: Abstract this
         {
             if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
 
@@ -72,7 +73,7 @@ namespace Bwrx.Api
             var whiteList = new List<IPAddress>();
             try
             {
-                var data = bigQueryClient.ExecuteQuery(getWhitelistQuery, null);
+                var data = await bigQueryClient.ExecuteQueryAsync(getWhitelistQuery, null);
 
                 foreach (var row in data)
                 {

@@ -10,6 +10,9 @@ namespace Bwrx.Api
 
         public delegate void ClearCacheFailedEventHandler(object sender, ClearCacheFailedEventArgs e);
 
+        public delegate void CloudDatabaseConnectionFailedEventHandler(object sender,
+            CloudDatabaseConnectionFailedEventArgs e);
+
         public delegate void CouldNotParseIpAddressEventHandler(object sender, CouldNotParseIpAddressEventArgs e);
 
         public delegate void DataTransmittedEventHandler(object sender, EventTransmittedEventArgs e);

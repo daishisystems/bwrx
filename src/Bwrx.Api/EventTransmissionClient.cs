@@ -55,7 +55,7 @@ namespace Bwrx.Api
                     BatchingSettings = new BatchingSettings(
                         clientConfigSettings.ElementCountThreshold,
                         clientConfigSettings.RequestByteThreshold,
-                        TimeSpan.FromSeconds(clientConfigSettings.DelayThreshold))
+                        TimeSpan.FromSeconds(clientConfigSettings.EventPublishDelayThreshold))
                 };
 
                 var publisherClientCreationSettings = new PublisherClient.ClientCreationSettings(
@@ -109,7 +109,7 @@ namespace Bwrx.Api
                     BatchingSettings = new BatchingSettings(
                         clientConfigSettings.ElementCountThreshold,
                         clientConfigSettings.RequestByteThreshold,
-                        TimeSpan.FromSeconds(clientConfigSettings.DelayThreshold))
+                        TimeSpan.FromSeconds(clientConfigSettings.EventPublishDelayThreshold))
                 };
 
                 var publisherClientCreationSettings = new PublisherClient.ClientCreationSettings(

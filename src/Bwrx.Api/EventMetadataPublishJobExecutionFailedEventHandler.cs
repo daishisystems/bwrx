@@ -1,5 +1,5 @@
 ﻿namespace Bwrx.Api
 {
-    public delegate void EventMetadataUploadJobExecutionFailedEventHandler(object sender,
+    public delegate void EventMetadataPublishJobExecutionFailedEventHandler(object sender,
         EventMetadataPublishJobExecutionFailedEventArgs e);
 }

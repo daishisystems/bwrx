@@ -1,38 +1,57 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
+using Google.Cloud.BigQuery.V2;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
 
 namespace Bwrx.Api
 {
-    internal class JobScheduler
+    public class JobScheduler
     {
         public delegate void JobSchedulerStartFailedEventHandler(object sender, JobSchedulerStartFailedEventArgs e);
 
         private static readonly Lazy<JobScheduler> InnerDataUploader =
             new Lazy<JobScheduler>(() => new JobScheduler());
 
+        private JobDetailImpl _eventMetadataPublishJobDetail;
+
+        private ITrigger _eventMetadataPublishJobTrigger;
+
         private EventMetadataPublishJobListener _eventMetadataUploadJobListener;
-        private JobDetailImpl _jobDetail;
+        private JobDetailImpl _getBlacklistJobDetail;
+        private GetBlacklistJobListener _getBlacklistJobListener;
+        private ITrigger _getBlacklistJobTrigger;
+        private JobDetailImpl _getWhitelistJobDetail;
+        private GetWhitelistJobListener _getWhitelistJobListener;
+        private ITrigger _getWhitelistJobTrigger;
 
         private IScheduler _scheduler;
-        private ITrigger _trigger;
 
         public static JobScheduler Instance => InnerDataUploader.Value;
 
-        public event JobSchedulerStartFailedEventHandler EventMetadataUploadStartFailed;
+        public event JobSchedulerStartFailedEventHandler JobSchedulerStartFailed;
 
-        public event EventMetadataUploadJobExecutionFailedEventHandler EventMetadataUploadJobExecutionFailed;
+        public event EventMetadataPublishJobExecutionFailedEventHandler EventMetadataPublishJobExecutionFailed;
+
+        public event GetBlacklistJobExecutionFailedEventHandler GetBlacklistJobExecutionFailed;
+
+        public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
 
         public async Task StartAsync(
             EventTransmissionClient eventTransmissionClient,
+            BigQueryClient bigQueryClient,
             EventMetaCache eventMetaCache,
+            Blacklist blacklist,
+            Whitelist whitelist,
             ClientConfigSettings eventTransmissionClientConfigSettings)
         {
             if (eventTransmissionClient == null) throw new ArgumentNullException(nameof(eventTransmissionClient));
+            if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
             if (eventMetaCache == null) throw new ArgumentNullException(nameof(eventMetaCache));
+            if (blacklist == null) throw new ArgumentNullException(nameof(blacklist));
+            if (whitelist == null) throw new ArgumentNullException(nameof(whitelist));
             if (eventTransmissionClientConfigSettings == null)
                 throw new ArgumentNullException(nameof(eventTransmissionClientConfigSettings));
 
@@ -48,47 +67,181 @@ namespace Bwrx.Api
 
                 await _scheduler.Start();
 
-                const string jobName = "eventMetadataUploadJob";
-
-                _jobDetail = new JobDetailImpl(
-                    jobName,
-                    typeof(EventMetadataPublishJob))
+                try
                 {
-                    JobDataMap =
-                    {
-                        [nameof(EventTransmissionClient)] = eventTransmissionClient,
-                        [nameof(EventMetaCache)] = eventMetaCache
-                    }
-                };
+                    await StartEventPublishJob(
+                        eventTransmissionClient,
+                        eventMetaCache,
+                        eventTransmissionClientConfigSettings);
+                }
+                catch (Exception exception)
+                {
+                    OnEventMetadataPublishJobExecutionFailed(
+                        new EventMetadataPublishJobExecutionFailedEventArgs(exception));
+                    throw new Exception("Failed to start event-publish background task.", exception);
+                }
 
-                _eventMetadataUploadJobListener = new EventMetadataPublishJobListener();
+                try
+                {
+                    await StartGetBlacklistJob(
+                        bigQueryClient,
+                        blacklist,
+                        eventTransmissionClientConfigSettings);
+                }
+                catch (Exception exception)
+                {
+                    OnGetBlacklistJobExecutionFailed(new GetBlacklistJobExecutionFailedEventArgs(exception));
+                    throw new Exception("Failed to start get-blacklist background task.", exception);
+                }
 
-                if (EventMetadataUploadJobExecutionFailed != null)
-                    _eventMetadataUploadJobListener.EventMetadataUploadJobExecutionFailed +=
-                        EventMetadataUploadJobExecutionFailed;
-
-                _scheduler.ListenerManager.AddJobListener(
-                    _eventMetadataUploadJobListener,
-                    KeyMatcher<JobKey>.KeyEquals(new JobKey(jobName)));
-
-                _trigger = TriggerBuilder.Create()
-                    .WithSimpleSchedule(s => s
-                        .WithIntervalInSeconds(eventTransmissionClientConfigSettings.ExecutionTimeInterval)
-                        .RepeatForever())
-                    .Build();
-
-                await _scheduler.ScheduleJob(_jobDetail, _trigger);
+                try
+                {
+                    await StartGetWhitelistJob(
+                        bigQueryClient,
+                        whitelist,
+                        eventTransmissionClientConfigSettings);
+                }
+                catch (Exception exception)
+                {
+                    OnGetWhitelistJobExecutionFailed(new GetWhitelistJobExecutionFailedEventArgs(exception));
+                    throw new Exception("Failed to start get-whitelist background task.", exception);
+                }
             }
             catch (Exception exception)
             {
-                const string errorMessage = "Failed to start data-upload background task.";
-                OnDataUploaderStartFailed(new JobSchedulerStartFailedEventArgs(new Exception(errorMessage, exception)));
+                const string errorMessage = "Failed to start background tasks.";
+                OnJobSchedulerStartFailed(new JobSchedulerStartFailedEventArgs(new Exception(errorMessage, exception)));
             }
         }
 
-        private void OnDataUploaderStartFailed(JobSchedulerStartFailedEventArgs e)
+        private async Task StartGetBlacklistJob(
+            BigQueryClient bigQueryClient,
+            Blacklist blacklist,
+            ClientConfigSettings eventTransmissionClientConfigSettings)
         {
-            EventMetadataUploadStartFailed?.Invoke(this, e);
+            const string blacklistJobName = "getBlacklistJob";
+
+            _getBlacklistJobDetail = new JobDetailImpl(
+                blacklistJobName,
+                typeof(GetBlacklistJob))
+            {
+                JobDataMap =
+                {
+                    [nameof(BigQueryClient)] = bigQueryClient,
+                    [nameof(Blacklist)] = blacklist
+                }
+            };
+
+            _getBlacklistJobListener = new GetBlacklistJobListener();
+
+            if (GetBlacklistJobExecutionFailed != null)
+                _getBlacklistJobListener.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
+
+            _scheduler.ListenerManager.AddJobListener(
+                _getBlacklistJobListener,
+                KeyMatcher<JobKey>.KeyEquals(new JobKey(blacklistJobName)));
+
+            _getBlacklistJobTrigger = TriggerBuilder.Create()
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetBlacklistTimeInterval)
+                    .RepeatForever())
+                .Build();
+
+            await _scheduler.ScheduleJob(_getBlacklistJobDetail, _getBlacklistJobTrigger);
+        }
+
+        private async Task StartGetWhitelistJob(
+            BigQueryClient bigQueryClient,
+            Whitelist whitelist,
+            ClientConfigSettings eventTransmissionClientConfigSettings)
+        {
+            const string whitelistJobName = "getWhitelistJob";
+
+            _getWhitelistJobDetail = new JobDetailImpl(
+                whitelistJobName,
+                typeof(GetWhitelistJob))
+            {
+                JobDataMap =
+                {
+                    [nameof(BigQueryClient)] = bigQueryClient,
+                    [nameof(Whitelist)] = whitelist
+                }
+            };
+
+            _getWhitelistJobListener = new GetWhitelistJobListener();
+
+            if (GetWhitelistJobExecutionFailed != null)
+                _getWhitelistJobListener.GetWhitelistJobExecutionFailed += GetWhitelistJobExecutionFailed;
+
+            _scheduler.ListenerManager.AddJobListener(
+                _getWhitelistJobListener,
+                KeyMatcher<JobKey>.KeyEquals(new JobKey(whitelistJobName)));
+
+            _getWhitelistJobTrigger = TriggerBuilder.Create()
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetWhitelistTimeInterval)
+                    .RepeatForever())
+                .Build();
+
+            await _scheduler.ScheduleJob(_getWhitelistJobDetail, _getWhitelistJobTrigger);
+        }
+
+        private async Task StartEventPublishJob(
+            EventTransmissionClient eventTransmissionClient,
+            EventMetaCache eventMetaCache,
+            ClientConfigSettings eventTransmissionClientConfigSettings)
+        {
+            const string publishJobName = "eventMetadataUploadJob";
+
+            _eventMetadataPublishJobDetail = new JobDetailImpl(
+                publishJobName,
+                typeof(EventMetadataPublishJob))
+            {
+                JobDataMap =
+                {
+                    [nameof(EventTransmissionClient)] = eventTransmissionClient,
+                    [nameof(EventMetaCache)] = eventMetaCache
+                }
+            };
+
+            _eventMetadataUploadJobListener = new EventMetadataPublishJobListener();
+
+            if (EventMetadataPublishJobExecutionFailed != null)
+                _eventMetadataUploadJobListener.EventMetadataPublishJobExecutionFailed +=
+                    EventMetadataPublishJobExecutionFailed;
+
+            _scheduler.ListenerManager.AddJobListener(
+                _eventMetadataUploadJobListener,
+                KeyMatcher<JobKey>.KeyEquals(new JobKey(publishJobName)));
+
+            _eventMetadataPublishJobTrigger = TriggerBuilder.Create()
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInSeconds(eventTransmissionClientConfigSettings.PublishExecutionTimeInterval)
+                    .RepeatForever())
+                .Build();
+
+            await _scheduler.ScheduleJob(_eventMetadataPublishJobDetail, _eventMetadataPublishJobTrigger);
+        }
+
+        private void OnGetBlacklistJobExecutionFailed(GetBlacklistJobExecutionFailedEventArgs e)
+        {
+            GetBlacklistJobExecutionFailed?.Invoke(this, e);
+        }
+
+        private void OnGetWhitelistJobExecutionFailed(GetWhitelistJobExecutionFailedEventArgs e)
+        {
+            GetWhitelistJobExecutionFailed?.Invoke(this, e);
+        }
+
+        private void OnJobSchedulerStartFailed(JobSchedulerStartFailedEventArgs e)
+        {
+            JobSchedulerStartFailed?.Invoke(this, e);
+        }
+
+        private void OnEventMetadataPublishJobExecutionFailed(
+            EventMetadataPublishJobExecutionFailedEventArgs e)
+        {
+            EventMetadataPublishJobExecutionFailed?.Invoke(this, e);
         }
     }
 }

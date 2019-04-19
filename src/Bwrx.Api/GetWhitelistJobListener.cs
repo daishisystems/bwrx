@@ -4,7 +4,7 @@ using Quartz;
 
 namespace Bwrx.Api
 {
-    internal class EventMetadataPublishJobListener : IJobListener
+    internal class GetWhitelistJobListener : IJobListener
     {
         public Task JobToBeExecuted(IJobExecutionContext context,
             CancellationToken cancellationToken = new CancellationToken())
@@ -22,19 +22,18 @@ namespace Bwrx.Api
             CancellationToken cancellationToken = new CancellationToken())
         {
             if (jobException != null)
-                OnEventMetadataPublishJobExecutionFailed(
-                    new EventMetadataPublishJobExecutionFailedEventArgs(jobException));
+                OnGetWhitelistJobExecutionFailed(
+                    new GetWhitelistJobExecutionFailedEventArgs(jobException));
             return Task.CompletedTask;
         }
 
-        public string Name => "eventMetadataUploadJobListener";
+        public string Name => "getWhitelistJobListener";
 
-        public event EventMetadataPublishJobExecutionFailedEventHandler EventMetadataPublishJobExecutionFailed;
+        public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
 
-
-        private void OnEventMetadataPublishJobExecutionFailed(EventMetadataPublishJobExecutionFailedEventArgs e)
+        private void OnGetWhitelistJobExecutionFailed(GetWhitelistJobExecutionFailedEventArgs e)
         {
-            EventMetadataPublishJobExecutionFailed?.Invoke(this, e);
+            GetWhitelistJobExecutionFailed?.Invoke(this, e);
         }
     }
 }
