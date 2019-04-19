@@ -1,4 +1,5 @@
 ﻿#if NET461
+using System.Linq;
 using System.Collections.Specialized;
 #endif
 using System.Collections.Generic;
@@ -57,6 +58,21 @@ namespace Bwrx.Tests.Unit
             Assert.True(httpHeaders.ContainsValue(value1));
             Assert.True(httpHeaders.ContainsValue(value2));
         }
+
+        [Fact]
+        public void IpAddressesAreParsed()
+        {
+            const string ipAddress1 = "83c881f4-03a3-192.168.0.14fd2-9622-9fa42427ddeb";
+            const string ipAddress2 = "83c881f4-03a3-192.168.0.1192.168.0.24fd2-9622-9fa42427ddeb";
+            const string ipAddress3 = "83c881f4-03a3-192.168.0.14fd2-9622-9fa42427ddeb";
+
+            var ipAddressText = new List<string> {ipAddress1, ipAddress2, ipAddress3};
+            var ipAddressesAreParsed = Agent.TryParseIpAddresses(ipAddressText, out var ipAddresses);
+
+            Assert.True(ipAddressesAreParsed);
+            Assert.Equal(4, ipAddresses.Count());
+        }
+
 #endif
 
         [Fact]

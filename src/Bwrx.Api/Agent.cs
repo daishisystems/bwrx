@@ -1,4 +1,7 @@
 ﻿#if NET461
+using Google.Apis.Auth.OAuth2;
+using System.Net;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -6,6 +9,8 @@ using System.Collections.Specialized;
 #endif
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.BigQuery.V2;
 using Newtonsoft.Json;
@@ -162,9 +167,32 @@ namespace Bwrx.Api
             }
         }
 
-        private static void SubscribeAsync(object stateInfo)
+        public static bool TryParseIpAddresses(
+            IEnumerable<string> ipAddressHttpHeaderValues,
+            out IEnumerable<IPAddress> ipAddresses)
         {
-            EventTransmissionClient.Instance.SubscribeAsync().Wait();
+            if (ipAddressHttpHeaderValues != null)
+            {
+                var parsedIpAddresses = new List<IPAddress>();
+                var ipAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
+
+                foreach (var ipAddressHttpHeaderValue in ipAddressHttpHeaderValues)
+                {
+                    var matches = ipAddressRegex.Matches(ipAddressHttpHeaderValue);
+
+                    foreach (Match match in matches)
+                    {
+                        var isIpAddress = IPAddress.TryParse(match.ToString(), out var ipAddress);
+                        if (isIpAddress) parsedIpAddresses.Add(ipAddress);
+                    }
+                }
+
+                ipAddresses = parsedIpAddresses;
+                return parsedIpAddresses.Count > 0;
+            }
+
+            ipAddresses = new List<IPAddress>();
+            return false;
         }
 
 #if (NETCOREAPP2_1 || NETCOREAPP2_2)
@@ -222,6 +250,24 @@ namespace Bwrx.Api
             var gotHeaderValues = httpRequest.Headers.TryGetValues(fingerprintHeaderName, out var headerValues);
             return gotHeaderValues ? headerValues.LastOrDefault() : null;
         }
+
+        public static bool TryGetIpAddressHttpHeaders(
+            string httpHeaderName,
+            HttpRequestMessage httpRequestMessage,
+            out IEnumerable<string> ipAddressHttpHeaders)
+        {
+            if (string.IsNullOrEmpty(httpHeaderName))
+            {
+                ipAddressHttpHeaders = new List<string>();
+                return false;
+            }
+
+            if (httpRequestMessage?.Headers != null)
+                return httpRequestMessage.Headers.TryGetValues(httpHeaderName, out ipAddressHttpHeaders);
+
+            ipAddressHttpHeaders = new List<string>();
+            return false;
+        }        
 #endif
         private void OnCloudDatabaseConnectionFailed(CloudDatabaseConnectionFailedEventArgs e)
         {
