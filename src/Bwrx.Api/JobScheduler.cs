@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
 using Quartz;
@@ -83,19 +85,6 @@ namespace Bwrx.Api
 
                 try
                 {
-                    await StartGetBlacklistJob(
-                        bigQueryClient,
-                        blacklist,
-                        eventTransmissionClientConfigSettings);
-                }
-                catch (Exception exception)
-                {
-                    OnGetBlacklistJobExecutionFailed(new GetBlacklistJobExecutionFailedEventArgs(exception));
-                    throw new Exception("Failed to start get-blacklist background task.", exception);
-                }
-
-                try
-                {
                     await StartGetWhitelistJob(
                         bigQueryClient,
                         whitelist,
@@ -105,6 +94,20 @@ namespace Bwrx.Api
                 {
                     OnGetWhitelistJobExecutionFailed(new GetWhitelistJobExecutionFailedEventArgs(exception));
                     throw new Exception("Failed to start get-whitelist background task.", exception);
+                }
+
+                try
+                {
+                    await StartGetBlacklistJob(
+                        bigQueryClient,
+                        blacklist,
+                        whitelist,
+                        eventTransmissionClientConfigSettings);
+                }
+                catch (Exception exception)
+                {
+                    OnGetBlacklistJobExecutionFailed(new GetBlacklistJobExecutionFailedEventArgs(exception));
+                    throw new Exception("Failed to start get-blacklist background task.", exception);
                 }
             }
             catch (Exception exception)
@@ -117,6 +120,7 @@ namespace Bwrx.Api
         private async Task StartGetBlacklistJob(
             BigQueryClient bigQueryClient,
             Blacklist blacklist,
+            Whitelist whitelist,
             ClientConfigSettings eventTransmissionClientConfigSettings)
         {
             const string blacklistJobName = "getBlacklistJob";
@@ -128,7 +132,8 @@ namespace Bwrx.Api
                 JobDataMap =
                 {
                     [nameof(BigQueryClient)] = bigQueryClient,
-                    [nameof(Blacklist)] = blacklist
+                    [nameof(Blacklist)] = blacklist,
+                    [nameof(Whitelist)] = whitelist
                 }
             };
 

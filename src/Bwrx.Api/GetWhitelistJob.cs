@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
 using Quartz;
@@ -16,7 +17,7 @@ namespace Bwrx.Api
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
 
                 var latestWhitelist = await whitelist.GetLatestAsync(bigQueryClient);
-                whitelist.UpDate(latestWhitelist);
+                whitelist.UpDate(latestWhitelist.ToList());
             }
             catch (Exception exception)
             {

@@ -15,11 +15,13 @@ namespace Bwrx.Api
         public Whitelist()
         {
             IpAddresses = new ConcurrentBag<IPAddress>();
+            IpAddressIndex = new HashSet<IPAddress>();
         }
 
         public static Whitelist Instance => Lazy.Value;
 
         public ConcurrentBag<IPAddress> IpAddresses { get; private set; }
+        public HashSet<IPAddress> IpAddressIndex { get; private set; }
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -52,13 +54,14 @@ namespace Bwrx.Api
             }
         }
 
-        public void UpDate(IEnumerable<IPAddress> whiteListedIPAddresses)
+        public void UpDate(List<IPAddress> whiteListedIPAddresses)
         {
             IpAddresses = new ConcurrentBag<IPAddress>(whiteListedIPAddresses);
+            IpAddressIndex = new HashSet<IPAddress>(whiteListedIPAddresses);
             OnWhitelistUpdated(new EventArgs());
         }
 
-        public async Task<IEnumerable<IPAddress>> GetLatestAsync(BigQueryClient bigQueryClient) // todo: Abstract this
+        public async Task<IEnumerable<IPAddress>> GetLatestAsync(BigQueryClient bigQueryClient)
         {
             if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
 

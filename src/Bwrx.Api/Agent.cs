@@ -251,7 +251,7 @@ namespace Bwrx.Api
             return gotHeaderValues ? headerValues.LastOrDefault() : null;
         }
 
-        public static bool TryGetIpAddressHttpHeaders(
+        public static bool TryGetIpAddressHttpHeaderValues(
             string httpHeaderName,
             HttpRequestMessage httpRequestMessage,
             out IEnumerable<string> ipAddressHttpHeaders)

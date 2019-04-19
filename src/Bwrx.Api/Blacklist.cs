@@ -66,9 +66,12 @@ namespace Bwrx.Api
             OnBlacklistUpdated(new EventArgs());
         }
 
-        public async Task<IEnumerable<IPAddress>> GetLatestAsync(BigQueryClient bigQueryClient)
+        public async Task<IEnumerable<IPAddress>> GetLatestAsync(
+            BigQueryClient bigQueryClient,
+            HashSet<IPAddress> whitelistedIpAddresses)
         {
             if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
+            if (whitelistedIpAddresses == null) throw new ArgumentNullException(nameof(whitelistedIpAddresses));
 
             const string getBlacklistQuery = @"SELECT
                   ipaddress
@@ -90,9 +93,13 @@ namespace Bwrx.Api
 
                     var canParse = IPAddress.TryParse(ipAddressMeta, out var ipAddress);
                     if (canParse)
-                        blacklist.Add(ipAddress);
+                    {
+                        if (!whitelistedIpAddresses.Contains(ipAddress)) blacklist.Add(ipAddress);
+                    }
                     else
+                    {
                         OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(ipAddressMeta));
+                    }
                 }
 
                 OnGotLatestBlacklist(new GotLatestListEventArgs(blacklist.Count));
