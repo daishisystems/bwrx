@@ -8,12 +8,21 @@ namespace Bwrx.Api
 
         public delegate void AddIpAddressFailedEventHandler(object sender, AddIpAddressFailedEventArgs e);
 
+        public delegate void BlacklistedIpAddressDetectedEventHandler(object sender,
+            BlacklistedIpAddressDetectedEventArgs e);
+
         public delegate void ClearCacheFailedEventHandler(object sender, ClearCacheFailedEventArgs e);
 
         public delegate void CloudDatabaseConnectionFailedEventHandler(object sender,
             CloudDatabaseConnectionFailedEventArgs e);
 
+        public delegate void CouldNotGetIpAddressHttpHeaderValuesEventHandler(object sender,
+            CouldNotGetIpAddressHttpHeaderValuesEventArgs e);
+
         public delegate void CouldNotParseIpAddressEventHandler(object sender, CouldNotParseIpAddressEventArgs e);
+
+        public delegate void CouldNotParseIpAddressHttpHeaderValuesEventHandler(object sender,
+            CouldNotParseIpAddressHttpHeaderValuesEventArgs e);
 
         public delegate void DataTransmittedEventHandler(object sender, EventTransmittedEventArgs e);
 

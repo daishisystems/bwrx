@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Net;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
 using Quartz;
