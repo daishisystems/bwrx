@@ -15,17 +15,20 @@ namespace Bwrx.Api
     public class BwrxDelegatingHandler : DelegatingHandler
     {
         private readonly HttpStatusCode _blockingHttpStatusCode;
+        private readonly IEnumerable<string> _endpointsToMonitor;
         private readonly string _ipAddressHeaderName;
         private readonly bool _passiveMode;
 
         public BwrxDelegatingHandler(
             string ipAddressHeaderName,
             HttpStatusCode blockingHttpStatusCode,
+            IEnumerable<string> endpointsToMonitor,
             bool passiveMode = false)
         {
             if (string.IsNullOrEmpty(ipAddressHeaderName)) throw new ArgumentNullException(nameof(ipAddressHeaderName));
             _ipAddressHeaderName = ipAddressHeaderName;
             _blockingHttpStatusCode = blockingHttpStatusCode;
+            _endpointsToMonitor = endpointsToMonitor;
             _passiveMode = passiveMode;
         }
 
@@ -41,6 +44,9 @@ namespace Bwrx.Api
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            if (!Agent.UriEndpointShouldBeMonitored(request.RequestUri.ToString(), _endpointsToMonitor.ToArray()))
+                return base.SendAsync(request, cancellationToken);
+
             var gotIpAddressHttpHeaders = false;
             IEnumerable<string> ipAddressHttpHeaderValues = null;
             try

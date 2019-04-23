@@ -1,4 +1,6 @@
-﻿#if NET461
+﻿
+using System;
+#if NET461
 using System.Linq;
 using System.Collections.Specialized;
 #endif
@@ -71,6 +73,38 @@ namespace Bwrx.Tests.Unit
 
             Assert.True(ipAddressesAreParsed);
             Assert.Equal(4, ipAddresses.Count());
+        }
+
+        [Fact]
+        public void UriEndpointShouldBeMonitored()
+        {
+            var endpointsToMonitor = new List<string>
+            {
+                "availability",
+                "booking",
+                "test"
+            };
+
+            const string uri = "https://example.com/v4/availability?ADT=1&CHD=0&DateIn=2019-05-23&D";
+            var uriEndpointShouldBeMonitored = Agent.UriEndpointShouldBeMonitored(uri, endpointsToMonitor.ToArray());
+
+            Assert.True(uriEndpointShouldBeMonitored);
+        }
+
+        [Fact]
+        public void UriEndpointShouldNotBeMonitored()
+        {
+            var endpointsToMonitor = new List<string>
+            {
+                "search",
+                "booking",
+                "test"
+            };
+
+            const string uri = "https://example.com/v4/availability?ADT=1&CHD=0&DateIn=2019-05-23&D";
+            var uriEndpointShouldBeMonitored = Agent.UriEndpointShouldBeMonitored(uri, endpointsToMonitor.ToArray());
+
+            Assert.False(uriEndpointShouldBeMonitored);
         }
 
 #endif

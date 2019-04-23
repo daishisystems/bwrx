@@ -195,6 +195,22 @@ namespace Bwrx.Api
             return false;
         }
 
+        public static bool UriEndpointShouldBeMonitored(string uri, string[] endpointsToMonitor)
+        {
+            if (string.IsNullOrEmpty(uri)) throw new ArgumentNullException(nameof(uri));
+            if (endpointsToMonitor == null) throw new ArgumentNullException(nameof(endpointsToMonitor));
+
+            bool endpointFound;
+            var counter = 0;
+
+            do
+            {
+                endpointFound = uri.Contains(endpointsToMonitor[counter++]);
+            } while (!endpointFound && counter < endpointsToMonitor.Length - 1);
+
+            return endpointFound;
+        }
+
 #if (NETCOREAPP2_1 || NETCOREAPP2_2)
         public static Dictionary<string, string>
             ParseHttpHeaders(IHeaderDictionary httpRequestHeaders)
