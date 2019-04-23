@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Bwrx.Api
+﻿namespace Bwrx.Api
 {
     public class ClientConfigSettings
     {
@@ -15,6 +13,5 @@ namespace Bwrx.Api
         public int MaxThreadCount { get; set; } = 45;
         public int PublishExecutionTimeInterval { get; set; } = 1;
         public int MaxQueueLength { get; set; } = 175000;
-        public IEnumerable<string> EndpointsToMonitor { get; set; }
     }
 }

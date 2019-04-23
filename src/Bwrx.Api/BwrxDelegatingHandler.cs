@@ -14,21 +14,21 @@ namespace Bwrx.Api
 #if NET461
     public class BwrxDelegatingHandler : DelegatingHandler
     {
-        private readonly HttpStatusCode _blockingHttpStatusCode;
+        private readonly int _blockingHttpStatusCode;
         private readonly IEnumerable<string> _endpointsToMonitor;
         private readonly string _ipAddressHeaderName;
         private readonly bool _passiveMode;
 
         public BwrxDelegatingHandler(
             string ipAddressHeaderName,
-            HttpStatusCode blockingHttpStatusCode,
+            int blockingHttpStatusCode,
             IEnumerable<string> endpointsToMonitor,
             bool passiveMode = false)
         {
             if (string.IsNullOrEmpty(ipAddressHeaderName)) throw new ArgumentNullException(nameof(ipAddressHeaderName));
             _ipAddressHeaderName = ipAddressHeaderName;
             _blockingHttpStatusCode = blockingHttpStatusCode;
-            _endpointsToMonitor = endpointsToMonitor;
+            _endpointsToMonitor = endpointsToMonitor ?? throw new ArgumentNullException(nameof(endpointsToMonitor));
             _passiveMode = passiveMode;
         }
 
@@ -100,7 +100,12 @@ namespace Bwrx.Api
                 new BlacklistedIpAddressDetectedEventArgs(blacklistedIpAddresses, _passiveMode));
             if (_passiveMode) return base.SendAsync(request, cancellationToken);
 
-            var response = new HttpResponseMessage(_blockingHttpStatusCode);
+            var canParseBlockingHttpStatusCode =
+                Enum.TryParse(_blockingHttpStatusCode.ToString(), out HttpStatusCode blockingHttpStatusCode);
+
+            if (!canParseBlockingHttpStatusCode) blockingHttpStatusCode = HttpStatusCode.Forbidden;
+
+            var response = new HttpResponseMessage(blockingHttpStatusCode);
             var tsc = new TaskCompletionSource<HttpResponseMessage>();
             tsc.SetResult(response);
             return tsc.Task;
