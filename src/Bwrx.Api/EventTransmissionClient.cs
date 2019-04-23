@@ -194,13 +194,11 @@ namespace Bwrx.Api
             CancellationToken cancellationToken)
         {
             try
-            {
-                // todo: new handler
+            {                
                 return Task.FromResult(SubscriberClient.Reply.Ack);
             }
             catch
-            {
-                // todo: new handler
+            {                
                 return null;
             }
         }
