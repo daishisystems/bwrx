@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
+#if NET461
+using System.Net.Http.Headers;
+using System.Net;
+#endif
 
 namespace Bwrx.Api
 {
@@ -82,6 +87,60 @@ namespace Bwrx.Api
                 OnAddEventMetaFailed(new AddEventMetaFailedEventArgs(new Exception(errorMessage, exception)));
             }
         }
+
+#if NET461
+        public void Add(
+            string eventName,
+            IEnumerable<KeyValuePair<string, string>> queryString,
+            IEnumerable<string> ipAddresses,
+            HttpRequestHeaders httpRequestHeaders)
+        {
+            if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
+            if (queryString == null) throw new ArgumentNullException(nameof(queryString));
+            if (ipAddresses == null) throw new ArgumentNullException(nameof(ipAddresses)); 
+            if (httpRequestHeaders == null) throw new ArgumentNullException(nameof(httpRequestHeaders));
+
+            if (_cache == null)
+            {
+                _cache = new ConcurrentQueue<string>();
+            }
+            else if (_cache.Count >= MaxQueueLength)
+            {
+                const string errorMessage = "The cache is full.";
+                OnAddEventMetaFailed(new AddEventMetaFailedEventArgs(new Exception(errorMessage)));
+                return;
+            }
+
+            try
+            {
+                var jsonSerializerSettings = new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.None
+                };
+
+                var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
+                var flightAvailabilityPayload = new FlightAvailabilityPayload
+                {
+                    EventName = eventName,
+                    QueryString = queryString,
+                    HttpRequestHeaders = httpRequestHeaders,
+                    IPAddresses = ipAddresses,
+                    Timestamp = timestamp.ToString()
+                };
+
+                var eventMetadataPayload =
+                    JsonConvert.SerializeObject(flightAvailabilityPayload, jsonSerializerSettings);
+
+                _cache.Enqueue(eventMetadataPayload);
+                OnEventMetaAdded(new EventMetaAddedEventArgs(eventMetadataPayload));
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "An error occurred while adding event-meta to cache.";
+                OnAddEventMetaFailed(new AddEventMetaFailedEventArgs(new Exception(errorMessage, exception)));
+            }
+        }
+#endif
 
         public IEnumerable<string> GetEventMetadataPayloadBatch(
             int maxItemsToRemove = 1000)

@@ -1,4 +1,6 @@
-﻿namespace Bwrx.Api
+﻿using System.Collections.Generic;
+
+namespace Bwrx.Api
 {
     public class ClientConfigSettings
     {
@@ -13,5 +15,9 @@
         public int MaxThreadCount { get; set; } = 45;
         public int PublishExecutionTimeInterval { get; set; } = 1;
         public int MaxQueueLength { get; set; } = 175000;
+        public IEnumerable<string> EndpointsToMonitor { get; set; }
+        public int BlockingHttpStatusCode { get; set; }
+        public string IpAddressHeaderName { get; set; }
+        public bool PassiveBlockingMode { get; set; }
     }
 }

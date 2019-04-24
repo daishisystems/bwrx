@@ -36,6 +36,8 @@ namespace Bwrx.Api
 
         private BigQueryClient _bigQueryClient;
 
+        public ClientConfigSettings ClientConfigSettings { get; private set; }
+
         public event EventHandlers.EventMetaAddedEventHandler EventMetaAdded;
         public event EventHandlers.AddEventMetaFailedEventHandler AddEventMetaFailed;
         public event EventHandlers.GetEventMetadataPayloadBatchFailedEventHandler GetEventMetadataPayloadBatchFailed;
@@ -97,6 +99,8 @@ namespace Bwrx.Api
             Whitelist.Instance.GotLatestWhitelist += WhitelistGotLatestList;
             Whitelist.Instance.GetLatestWhitelistFailed += WhitelistGetLatestListFailed;
             Whitelist.Instance.CouldNotParseIpAddress += WhitelistCouldNotParseIpAddress;
+
+            ClientConfigSettings = clientConfigSettings;
 
             EventTransmissionClient.Instance.InitAsync(
                 cloudServiceCredentials,
@@ -165,7 +169,7 @@ namespace Bwrx.Api
             {
                 throw new JsonSerializationException($"Could not edit the JSON payload: {json}", exception);
             }
-        }
+        }        
 
         public static bool TryParseIpAddresses(
             IEnumerable<string> ipAddressHttpHeaderValues,
