@@ -1,23 +1,19 @@
 ﻿#if NET461
-using Google.Apis.Auth.OAuth2;
 using System.Net;
-using System;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Collections.Specialized;
 #endif
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text.RegularExpressions;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.BigQuery.V2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 #if (NETCOREAPP2_1 || NETCOREAPP2_2)
-using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
@@ -66,6 +62,12 @@ namespace Bwrx.Api
         public event EventHandlers.GotLatestListEventHandler WhitelistGotLatestList;
         public event EventHandlers.GetLatestListFailedEventHandler WhitelistGetLatestListFailed;
         public event EventHandlers.CouldNotParseIpAddressEventHandler WhitelistCouldNotParseIpAddress;
+
+        public event EventHandlers.CouldNotGetIpAddressHttpHeaderValuesEventHandler
+            CouldNotGetIpAddressHttpHeaderValues;
+
+        public event EventHandlers.CouldNotParseIpAddressHttpHeaderValuesEventHandler
+            CouldNotParseIpAddressHttpHeaderValues;
 
         public void Start(
             CloudServiceCredentials cloudServiceCredentials,
@@ -169,8 +171,9 @@ namespace Bwrx.Api
             {
                 throw new JsonSerializationException($"Could not edit the JSON payload: {json}", exception);
             }
-        }        
+        }
 
+#if NET461
         public static bool TryParseIpAddresses(
             IEnumerable<string> ipAddressHttpHeaderValues,
             out IEnumerable<IPAddress> ipAddresses)
@@ -198,6 +201,7 @@ namespace Bwrx.Api
             ipAddresses = new List<IPAddress>();
             return false;
         }
+#endif
 
         public static bool UriEndpointShouldBeMonitored(string uri, string[] endpointsToMonitor)
         {
@@ -292,6 +296,16 @@ namespace Bwrx.Api
         private void OnCloudDatabaseConnectionFailed(CloudDatabaseConnectionFailedEventArgs e)
         {
             CloudDatabaseConnectionFailed?.Invoke(this, e);
+        }
+
+        public void OnCouldNotGetIpAddressHttpHeaderValues(CouldNotGetIpAddressHttpHeaderValuesEventArgs e)
+        {
+            CouldNotGetIpAddressHttpHeaderValues?.Invoke(this, e);
+        }
+
+        public void OnCouldNotParseIpAddressHttpHeaderValues(CouldNotParseIpAddressHttpHeaderValuesEventArgs e)
+        {
+            CouldNotParseIpAddressHttpHeaderValues?.Invoke(this, e);
         }
     }
 }

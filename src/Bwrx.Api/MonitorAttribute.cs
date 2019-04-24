@@ -11,7 +11,7 @@ using System.Web.Http.Filters;
 
 #endif
 
-namespace Bwrx.Api // todo: event handler, public Agent methods ...
+namespace Bwrx.Api
 {
 #if NET461
     public class MonitorAttribute : Attribute, IActionFilter
@@ -41,12 +41,23 @@ namespace Bwrx.Api // todo: event handler, public Agent methods ...
                     actionContext.Request,
                     out ipAddressHttpHeaderValues);
             }
-            catch
+            catch (Exception exception)
             {
+                const string errorMessage = "Could not get IP address HTTP headers.";
+                Agent.Instance.OnCouldNotGetIpAddressHttpHeaderValues(
+                    new CouldNotGetIpAddressHttpHeaderValuesEventArgs(
+                        Agent.Instance.ClientConfigSettings.IpAddressHeaderName,
+                        new Exception(errorMessage, exception)));
                 return result;
             }
 
-            if (!gotIpAddressHttpHeaders) return result;
+            if (!gotIpAddressHttpHeaders)
+            {
+                Agent.Instance.OnCouldNotGetIpAddressHttpHeaderValues(
+                    new CouldNotGetIpAddressHttpHeaderValuesEventArgs(
+                        Agent.Instance.ClientConfigSettings.IpAddressHeaderName));
+                return result;
+            }
 
             bool canParseIpAddressHeaders;
             IEnumerable<IPAddress> ipAddresses;
@@ -54,12 +65,25 @@ namespace Bwrx.Api // todo: event handler, public Agent methods ...
             {
                 canParseIpAddressHeaders = Agent.TryParseIpAddresses(ipAddressHttpHeaderValues, out ipAddresses);
             }
-            catch
+            catch (Exception exception)
             {
+                const string errorMessage = "Could not parse IP addresses from HTTP headers";
+                Agent.Instance.OnCouldNotParseIpAddressHttpHeaderValues(
+                    new CouldNotParseIpAddressHttpHeaderValuesEventArgs(
+                        actionContext.Request.Headers.GetValues(Agent.Instance.ClientConfigSettings
+                            .IpAddressHeaderName),
+                        new Exception(errorMessage, exception)));
                 return result;
             }
 
-            if (!canParseIpAddressHeaders) return result;
+            if (!canParseIpAddressHeaders)
+            {
+                Agent.Instance.OnCouldNotParseIpAddressHttpHeaderValues(
+                    new CouldNotParseIpAddressHttpHeaderValuesEventArgs(
+                        actionContext.Request.Headers.GetValues(Agent.Instance.ClientConfigSettings
+                            .IpAddressHeaderName)));
+                return result;
+            }
 
             try
             {
