@@ -6,9 +6,9 @@ namespace Bwrx.Api
     {
         public GotLatestListEventArgs(int numBlacklistedIpAddresses)
         {
-            NumBlacklistedIpAddresses = numBlacklistedIpAddresses;
+            NumIpAddresses = numBlacklistedIpAddresses;
         }
 
-        public int NumBlacklistedIpAddresses { get; }
+        public int NumIpAddresses { get; }
     }
 }
