@@ -61,17 +61,15 @@ namespace Bwrx.Api
             OnWhitelistUpdated(new EventArgs());
         }
 
-        public async Task<IEnumerable<IPAddress>> GetLatestAsync(BigQueryClient bigQueryClient)
+        public async Task<IEnumerable<IPAddress>>
+            GetLatestAsync(BigQueryClient bigQueryClient)
         {
             if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
 
             const string getWhitelistQuery = @"SELECT
                   ipaddress
                 FROM
-                  ipaddress_lists.whitelist
-                WHERE
-                  _PARTITIONTIME BETWEEN TIMESTAMP_TRUNC(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 * 24 HOUR),DAY)
-                  AND TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(),DAY);";
+                  ipaddress_lists.whitelist;";
 
             var whiteList = new List<IPAddress>();
             try
