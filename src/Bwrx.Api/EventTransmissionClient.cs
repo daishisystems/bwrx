@@ -8,7 +8,6 @@ using Google.Apis.Auth.OAuth2;
 using Google.Cloud.PubSub.V1;
 using Google.Protobuf;
 using Grpc.Auth;
-using Grpc.Core;
 using Newtonsoft.Json;
 
 namespace Bwrx.Api
@@ -126,30 +125,6 @@ namespace Bwrx.Api
                     publisherClientCreationSettings,
                     publisherSettings);
 
-                var subscriberTopicName = new TopicName(
-                    clientConfigSettings.ProjectId,
-                    clientConfigSettings.SubscriberTopicId);
-
-                var subscriptionName = new SubscriptionName(clientConfigSettings.ProjectId, subscriptionId);
-                try
-                {
-                    var channel = new Channel(
-                        SubscriberServiceApiClient.DefaultEndpoint.Host,
-                        SubscriberServiceApiClient.DefaultEndpoint.Port, credential.ToChannelCredentials());
-                    var client = SubscriberServiceApiClient.Create(channel);
-                    client.CreateSubscription(subscriptionName, subscriberTopicName, null, null);
-                }
-                catch (RpcException e) when (e.Status.StatusCode == StatusCode.AlreadyExists)
-                {
-                    // ignored
-                }
-
-                var subscriberClientCreationSettings = new SubscriberClient.ClientCreationSettings(
-                    null,
-                    null,
-                    credential.ToChannelCredentials());
-
-                _subscriber = await SubscriberClient.CreateAsync(subscriptionName, subscriberClientCreationSettings);
                 Initialised = true;
             }
             catch (Exception exception)
@@ -194,11 +169,11 @@ namespace Bwrx.Api
             CancellationToken cancellationToken)
         {
             try
-            {                
+            {
                 return Task.FromResult(SubscriberClient.Reply.Ack);
             }
             catch
-            {                
+            {
                 return null;
             }
         }
