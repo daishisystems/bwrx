@@ -61,7 +61,7 @@ namespace Bwrx.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://storage.googleapis.com/integration-test-creds/config.json.
+        ///   Looks up a localized string similar to .
         /// </summary>
         internal static string ConfigFileUri {
             get {
@@ -70,7 +70,7 @@ namespace Bwrx.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://storage.googleapis.com/integration-test-creds/creds.json.
+        ///   Looks up a localized string similar to .
         /// </summary>
         internal static string CredentialsFileUri {
             get {
@@ -79,7 +79,7 @@ namespace Bwrx.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to eshop-puddle.
+        ///   Looks up a localized string similar to .
         /// </summary>
         internal static string GCPProjectId {
             get {
@@ -88,7 +88,16 @@ namespace Bwrx.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to strada-integration-test-subscription.
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string GoogleCredential {
+            get {
+                return ResourceManager.GetString("GoogleCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
         /// </summary>
         internal static string PubSubSubscriptionId {
             get {
@@ -97,7 +106,7 @@ namespace Bwrx.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to strada-integration-test-topic.
+        ///   Looks up a localized string similar to .
         /// </summary>
         internal static string PubSubTopicId {
             get {

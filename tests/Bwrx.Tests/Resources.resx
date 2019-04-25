@@ -118,18 +118,21 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ConfigFileUri" xml:space="preserve">
-    <value>https://storage.googleapis.com/integration-test-creds/config.json</value>
+    <value />
   </data>
   <data name="CredentialsFileUri" xml:space="preserve">
-    <value>https://storage.googleapis.com/integration-test-creds/creds.json</value>
+    <value />
   </data>
   <data name="GCPProjectId" xml:space="preserve">
-    <value>eshop-puddle</value>
+    <value />
+  </data>
+  <data name="GoogleCredential" xml:space="preserve">
+    <value />
   </data>
   <data name="PubSubSubscriptionId" xml:space="preserve">
-    <value>strada-integration-test-subscription</value>
+    <value />
   </data>
   <data name="PubSubTopicId" xml:space="preserve">
-    <value>strada-integration-test-topic</value>
+    <value />
   </data>
 </root>
