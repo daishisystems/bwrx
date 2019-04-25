@@ -26,7 +26,7 @@ namespace Bwrx.Tests.Integration
             CloudServiceCredentials gcpServiceCredentials;
 
             try
-            { // todo: Update GCP config settings
+            {
                 topicName = new TopicName(Resources.GCPProjectId, Resources.PubSubTopicId);
                 subscriptionName = new SubscriptionName(Resources.GCPProjectId, Resources.PubSubSubscriptionId);
 
