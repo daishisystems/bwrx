@@ -6,9 +6,9 @@ namespace Bwrx.Api
     {
         public EventTransmittedEventArgs(int numItemsTransmitted)
         {
-            NumItemsTransferred = numItemsTransmitted;
+            NumItemsTransmitted = numItemsTransmitted;
         }
 
-        public int NumItemsTransferred { get; }
+        public int NumItemsTransmitted { get; }
     }
 }
