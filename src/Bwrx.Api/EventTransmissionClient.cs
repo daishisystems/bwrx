@@ -18,7 +18,6 @@ namespace Bwrx.Api
             new Lazy<EventTransmissionClient>(() => new EventTransmissionClient());
 
         private PublisherClient _publisher;
-        private SubscriberClient _subscriber;
 
         public static EventTransmissionClient Instance => InnerEventTransmissionClient.Value;
 
@@ -157,11 +156,6 @@ namespace Bwrx.Api
                     new EventTransmissionFailedEventArgs(new Exception(errorMessage,
                         exception)));
             }
-        }
-
-        public async Task SubscribeAsync()
-        {
-            await _subscriber.StartAsync(GetEvent);
         }
 
         private static Task<SubscriberClient.Reply> GetEvent(

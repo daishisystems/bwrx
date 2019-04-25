@@ -83,19 +83,6 @@ namespace Bwrx.Api
 
                 try
                 {
-                    await StartGetWhitelistJob(
-                        bigQueryClient,
-                        whitelist,
-                        eventTransmissionClientConfigSettings);
-                }
-                catch (Exception exception)
-                {
-                    OnGetWhitelistJobExecutionFailed(new GetWhitelistJobExecutionFailedEventArgs(exception));
-                    throw new Exception("Failed to start get-whitelist background task.", exception);
-                }
-
-                try
-                {
                     await StartGetBlacklistJob(
                         bigQueryClient,
                         blacklist,
