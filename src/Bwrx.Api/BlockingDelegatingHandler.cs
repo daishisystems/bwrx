@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 namespace Bwrx.Api
 {
 #if NET461
-    public class BwrxDelegatingHandler : DelegatingHandler
+    public class BlockingDelegatingHandler : DelegatingHandler
     {
         private readonly int _blockingHttpStatusCode;
         private readonly string _ipAddressHeaderName;
         private readonly bool _passiveMode;
 
-        public BwrxDelegatingHandler(
+        public BlockingDelegatingHandler(
             string ipAddressHeaderName,
             int blockingHttpStatusCode,
             bool passiveMode = false)

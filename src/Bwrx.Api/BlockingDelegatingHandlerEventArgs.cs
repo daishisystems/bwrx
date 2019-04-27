@@ -6,9 +6,9 @@ using System.Net.Http;
 namespace Bwrx.Api
 {
 #if NET461
-    public class BwrxDelegatingHandlerEventArgs : EventArgs
+    public class BlockingDelegatingHandlerEventArgs : EventArgs
     {
-        public BwrxDelegatingHandlerEventArgs(
+        public BlockingDelegatingHandlerEventArgs(
             HttpRequestMessage httpRequestMessage,
             IEnumerable<IPAddress> ipAddresses)
         {
