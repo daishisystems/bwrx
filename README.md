@@ -76,6 +76,7 @@ Errors are handled implicitly, so that the your application process flow is not 
 > An event could not be added to the cache
 > ###### Parameters
 > `Exception`, *Exception*
+
 > The `Exception` instance that raised the event
 ##### `Agent.Instance.BlacklistAddIpAddressFailed`
 > An IP address could not be added to the blacklist
