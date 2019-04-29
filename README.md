@@ -82,26 +82,32 @@ Errors are handled implicitly, so that the your application process flow is not 
 > An IP address could not be added to the blacklist
 > ###### Parameters 
 > `IpAddress`, *IPAddress*
+
 > The `IPAddress` that could not be added to the blacklist
 
 > `Exception`, *Exception*
+
 > The `Exception` instance that raised the event
 ##### `Agent.Instance.BlacklistCouldNotParseIpAddress`
 > The blacklist could not parse an IP address
 > ###### Parameters
 > `IpAddress`, *string*
+
 > The text that could not be parsed to an `IPAddress` instance
 > `Exception`, *Exception*
+
 > The `Exception` instance that raised the event
 ##### `Agent.Instance.BlacklistGetLatestListFailed`
 > The most up-to-date blacklist could not be retrieved
 > ###### Parameters
 > `Exception`, *Exception*
+
 > The `Exception` instance that raised the event 
 ##### `Agent.Instance.ClearCacheFailed`
 > The cache could not be cleared manually
 > ###### Parameters
 > `Exception`, *Exception*
+
 > The `Exception` instance that raised the event 
 ##### `Agent.Instance.CloudDatabaseConnectionFailed`
 > The Cloud database connection could not be established
@@ -112,8 +118,11 @@ Errors are handled implicitly, so that the your application process flow is not 
 > HTTP header values that contain IP address metadata could not be retrieved from the current HTTP request context	
 > ###### Parameters
 > `IPAddressHeaderName`, *string*
+
 > The name of the HTTP header that contains IP address metadata
+
 > `Exception`, *Exception*
+
 > The `Exception` instance that raised the event 
 ##### `Agent.Instance.CouldNotParseIpAddressHttpHeaderValues`
 > HTTP header values containing IP address metadata could not be parsed
