@@ -5,7 +5,7 @@
     <Version>1.0.0</Version>
     <Authors>Bwrx</Authors>
     <title>Botworks API</title>
-    <Description>High-throughput API designed to monitor and prevent bad actors from accessing your application</Description>
+    <Description>High-throughput, low-overhead API designed to monitor and prevent bad actors from accessing your application</Description>
     <Copyright>Copyright (c) 2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/daishisystems/bwrx</PackageProjectUrl>
