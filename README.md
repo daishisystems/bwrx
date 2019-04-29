@@ -118,12 +118,10 @@ Errors are handled implicitly, so that the your application process flow is not 
 > HTTP header values that contain IP address metadata could not be retrieved from the current HTTP request context	
 > ###### Parameters
 > `IPAddressHeaderName`, *string*
-
-> 	The name of the HTTP header that contains IP address metadata
+The name of the HTTP header that contains IP address metadata
 
 > `Exception`, *Exception*
-
-> 	The `Exception` instance that raised the event 
+The `Exception` instance that raised the event 
 ##### `Agent.Instance.CouldNotParseIpAddressHttpHeaderValues`
 > HTTP header values containing IP address metadata could not be parsed
 > ###### Parameters
