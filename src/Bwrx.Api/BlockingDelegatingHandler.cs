@@ -18,23 +18,21 @@ namespace Bwrx.Api
         private readonly string _ipAddressHeaderName;
         private readonly bool _passiveMode;
 
-        public BlockingDelegatingHandler(
-            string ipAddressHeaderName,
-            int blockingHttpStatusCode,
-            bool passiveMode = false)
+        public BlockingDelegatingHandler(ClientConfigSettings clientConfigSettings)
         {
-            if (string.IsNullOrEmpty(ipAddressHeaderName)) throw new ArgumentNullException(nameof(ipAddressHeaderName));
-            _ipAddressHeaderName = ipAddressHeaderName;
-            _blockingHttpStatusCode = blockingHttpStatusCode;
-            _passiveMode = passiveMode;
+            if (string.IsNullOrEmpty(clientConfigSettings.IpAddressHeaderName))
+                throw new ArgumentNullException(nameof(clientConfigSettings.IpAddressHeaderName));
+            _ipAddressHeaderName = clientConfigSettings.IpAddressHeaderName;
+            _blockingHttpStatusCode = clientConfigSettings.BlockingHttpStatusCode;
+            _passiveMode = clientConfigSettings.PassiveBlockingMode;
         }
-        
+
         public event EventHandlers.CouldNotParseIpAddressHttpHeaderValuesEventHandler
             CouldNotParseIpAddressHttpHeaderValues;
 
         public event EventHandlers.CouldNotGetIpAddressHttpHeaderValuesEventHandler
             CouldNotGetIpAddressHttpHeaderValues;
-        
+
         public event EventHandlers.BlacklistedIpAddressDetectedEventHandler BlacklistedIpAddressDetected;
 
         protected override Task<HttpResponseMessage> SendAsync(
