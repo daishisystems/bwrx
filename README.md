@@ -71,7 +71,7 @@ var clientConfigSettings =
 var bwrxDelegatingHandler = new BlockingDelegatingHandler(clientConfigSettings);
 ```
 ### Error Handling
-Errors are handled implicitly, so that the your application process flow is not interrupted. You can subscribe to any error thrown
+Errors are handled implicitly, so that the your application process flow is not interrupted
 ##### `Agent.Instance.AddEventMetaFailed`
 > An event could not be added to the cache
 > ###### Parameters
@@ -82,6 +82,7 @@ Errors are handled implicitly, so that the your application process flow is not 
 > ###### Parameters 
 > `IpAddress`, *IPAddress*
 > The `IPAddress` that could not be added to the blacklist
+
 > `Exception`, *Exception*
 > The `Exception` instance that raised the event
 ##### `Agent.Instance.BlacklistCouldNotParseIpAddress`
