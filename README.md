@@ -77,7 +77,7 @@ Errors are handled implicitly, so that the your application process flow is not 
 > ###### Parameters
 > `Exception`, *Exception*
 
-> The `Exception` instance that raised the event
+> *The `Exception` instance that raised the event*
 ##### `Agent.Instance.BlacklistAddIpAddressFailed`
 > An IP address could not be added to the blacklist
 > ###### Parameters 
