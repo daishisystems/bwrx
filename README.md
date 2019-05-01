@@ -30,7 +30,7 @@ Deserialize the credentials
 ```csharp
 var cloudServiceCredentials = JsonConvert.DeserializeObject<CloudServiceCredentials>(Resources.CloudServiceCredentials);
 ```
-Note, this examples assumes that the `GcpServiceCredentials` JSON values are stored in a local `Resource` file
+Note, this examples assumes that the `CloudServiceCredentials` JSON values are stored in a local `Resource` file
 ### Configuration
 A `ClientConfigSettings` instance is necessary to configure the Botworks API. Configuration meta is stored in JSON format 
 ```json
@@ -71,7 +71,7 @@ var clientConfigSettings =
 var bwrxDelegatingHandler = new BlockingDelegatingHandler(clientConfigSettings);
 ```
 ### Error Handling
-Errors are handled implicitly, so that the your application process flow is not interrupted
+Errors are handled implicitly, so that the your application process flow is not interrupted. You can subscribe to the following errors
 ##### `Agent.Instance.AddEventMetaFailed`
 > An event could not be added to the cache
 > ###### Parameters
