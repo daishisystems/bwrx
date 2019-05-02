@@ -12,11 +12,11 @@ namespace Bwrx.Api
         public int EventPublishDelayThreshold { get; set; } = 3;
         public int GetBlacklistTimeInterval { get; set; } = 5;
         public int GetWhitelistTimeInterval { get; set; } = 5;
-        public int MaxThreadCount { get; set; } = 45;
-        public int PublishExecutionTimeInterval { get; set; } = 1;
+        public int MaxThreadCount { get; set; } = 10;
+        public int PublishExecutionTimeInterval { get; set; } = 30;
         public int MaxQueueLength { get; set; } = 175000;
         public IEnumerable<string> EndpointsToMonitor { get; set; }
-        public int BlockingHttpStatusCode { get; set; }
+        public int BlockingHttpStatusCode { get; set; } = 403;
         public string IpAddressHeaderName { get; set; }
         public bool PassiveBlockingMode { get; set; }
     }
