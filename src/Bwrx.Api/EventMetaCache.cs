@@ -36,14 +36,12 @@ namespace Bwrx.Api
         public void Add<T>(
             T eventMetadataPayload,
             string eventName,
-            string queryString,
-            Dictionary<string, string> httpHeaders)
+            string queryString = null,
+            Dictionary<string, string> httpHeaders = null)
         {
             if (eventMetadataPayload == null)
                 throw new ArgumentNullException(nameof(eventMetadataPayload));
-            if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
-            if (httpHeaders == null)
-                throw new ArgumentNullException(nameof(httpHeaders));
+            if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));            
 
             if (_cache == null)
             {
