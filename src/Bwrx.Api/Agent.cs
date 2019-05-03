@@ -160,7 +160,9 @@ namespace Bwrx.Api
             {
                 var jsonObject = JObject.Parse(json);
                 jsonObject.Add(new JProperty("eventName", eventName));
-                jsonObject.Add(new JProperty("queryString", queryString));
+                jsonObject.Add(!string.IsNullOrEmpty(queryString)
+                    ? new JProperty("queryString", queryString)
+                    : new JProperty("queryString", null));
                 jsonObject.Add(httpHeaders != null
                     ? new JProperty("httpHeaders", JObject.FromObject(httpHeaders))
                     : new JProperty("httpHeaders", null));
