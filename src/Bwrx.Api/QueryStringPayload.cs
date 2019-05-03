@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 #if NET461
 using System.Net.Http.Headers;
-using System.Net;
 
 #endif
 
