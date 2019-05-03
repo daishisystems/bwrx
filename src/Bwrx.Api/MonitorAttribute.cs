@@ -88,9 +88,9 @@ namespace Bwrx.Api
             try
             {
                 var rawIpAddresses = ipAddresses.Select(ip => ip.ToString());
-                var payload = actionContext.Request.GetQueryNameValuePairs();
+                var queryString = actionContext.Request.GetQueryNameValuePairs();
 
-                EventMetaCache.Instance.Add(EventName, payload, rawIpAddresses, actionContext.Request.Headers);
+                EventMetaCache.Instance.Add(EventName, queryString, rawIpAddresses, actionContext.Request.Headers);
                 return result;
             }
             catch

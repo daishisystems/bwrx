@@ -8,7 +8,7 @@ using System.Net;
 namespace Bwrx.Api
 {
 #if NET461
-    internal class FlightAvailabilityPayload
+    internal class QueryStringPayload
     {
         public IEnumerable<KeyValuePair<string, string>> QueryString { get; set; }
         public string EventName { get; set; }

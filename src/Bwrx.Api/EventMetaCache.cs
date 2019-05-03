@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 #if NET461
 using System.Net.Http.Headers;
-using System.Net;
+
 #endif
 
 namespace Bwrx.Api
@@ -97,7 +96,7 @@ namespace Bwrx.Api
         {
             if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
             if (queryString == null) throw new ArgumentNullException(nameof(queryString));
-            if (ipAddresses == null) throw new ArgumentNullException(nameof(ipAddresses)); 
+            if (ipAddresses == null) throw new ArgumentNullException(nameof(ipAddresses));
             if (httpRequestHeaders == null) throw new ArgumentNullException(nameof(httpRequestHeaders));
 
             if (_cache == null)
@@ -119,7 +118,7 @@ namespace Bwrx.Api
                 };
 
                 var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
-                var flightAvailabilityPayload = new FlightAvailabilityPayload
+                var flightAvailabilityPayload = new QueryStringPayload
                 {
                     EventName = eventName,
                     QueryString = queryString,
