@@ -88,14 +88,21 @@ namespace Bwrx.Api
 
             if (blacklistedIpAddresses.Count == 0) return base.SendAsync(request, cancellationToken);
 
-            OnBlacklistedIpAddressDetected(
-                new BlacklistedIpAddressDetectedEventArgs(blacklistedIpAddresses, _passiveMode));
-            if (_passiveMode) return base.SendAsync(request, cancellationToken);
-
             var canParseBlockingHttpStatusCode =
                 Enum.TryParse(_blockingHttpStatusCode.ToString(), out HttpStatusCode blockingHttpStatusCode);
 
             if (!canParseBlockingHttpStatusCode) blockingHttpStatusCode = HttpStatusCode.Forbidden;
+
+            var ipAddressEntryAttempt = new IpAddressEntryAttempt
+            {
+                IpAddresses = blacklistedIpAddresses.Select(ip => ip.ToString()),
+                PassiveMode = _passiveMode
+            };
+            EventMetaCache.Instance.Add(ipAddressEntryAttempt, "Scrape");
+
+            OnBlacklistedIpAddressDetected(
+                new BlacklistedIpAddressDetectedEventArgs(blacklistedIpAddresses, _passiveMode));
+            if (_passiveMode) return base.SendAsync(request, cancellationToken);
 
             var response = new HttpResponseMessage(blockingHttpStatusCode);
             var tsc = new TaskCompletionSource<HttpResponseMessage>();
