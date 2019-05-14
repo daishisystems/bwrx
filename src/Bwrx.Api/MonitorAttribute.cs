@@ -1,11 +1,11 @@
-﻿using System;
+﻿#if NET461
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-#if NET461
 using System.Net;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 
@@ -56,6 +56,11 @@ namespace Bwrx.Api
                 Agent.Instance.OnCouldNotGetIpAddressHttpHeaderValues(
                     new CouldNotGetIpAddressHttpHeaderValuesEventArgs(
                         Agent.Instance.ClientConfigSettings.IpAddressHeaderName));
+
+
+                var queryString = actionContext.Request.GetQueryNameValuePairs();
+                EventMetaCache.Instance.Add(EventName, queryString, new List<string>(), actionContext.Request.Headers);
+
                 return result;
             }
 
@@ -82,12 +87,16 @@ namespace Bwrx.Api
                     new CouldNotParseIpAddressHttpHeaderValuesEventArgs(
                         actionContext.Request.Headers.GetValues(Agent.Instance.ClientConfigSettings
                             .IpAddressHeaderName)));
+
+                var queryString = actionContext.Request.GetQueryNameValuePairs();
+                EventMetaCache.Instance.Add(EventName, queryString, new List<string>(), actionContext.Request.Headers);
+
                 return result;
             }
 
             try
             {
-                var rawIpAddresses = ipAddresses.Select(ip => ip.ToString());
+                var rawIpAddresses = ipAddresses != null ? ipAddresses.Select(ip => ip.ToString()) : new List<string>();
                 var queryString = actionContext.Request.GetQueryNameValuePairs();
 
                 EventMetaCache.Instance.Add(EventName, queryString, rawIpAddresses, actionContext.Request.Headers);

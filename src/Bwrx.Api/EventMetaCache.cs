@@ -41,7 +41,7 @@ namespace Bwrx.Api
         {
             if (eventMetadataPayload == null)
                 throw new ArgumentNullException(nameof(eventMetadataPayload));
-            if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));            
+            if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
 
             if (_cache == null)
             {
@@ -116,7 +116,7 @@ namespace Bwrx.Api
                 };
 
                 var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
-                var flightAvailabilityPayload = new QueryStringPayload
+                var queryStringPayload = new QueryStringPayload
                 {
                     EventName = eventName,
                     QueryString = queryString,
@@ -126,7 +126,7 @@ namespace Bwrx.Api
                 };
 
                 var eventMetadataPayload =
-                    JsonConvert.SerializeObject(flightAvailabilityPayload, jsonSerializerSettings);
+                    JsonConvert.SerializeObject(queryStringPayload, jsonSerializerSettings);
 
                 _cache.Enqueue(eventMetadataPayload);
                 OnEventMetaAdded(new EventMetaAddedEventArgs(eventMetadataPayload));
