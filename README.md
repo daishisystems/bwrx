@@ -38,7 +38,9 @@ A `ClientConfigSettings` instance is necessary to configure the Botworks API. Co
 	"ProjectId": "{Project ID}",
 	"PublisherTopicId": "{Publisher Topic ID}",
 	"BlockingHttpStatusCode": 403,
-	"IpAddressHeaderName": "{Default IP address HTTP header name}"
+	"IpAddressHeaderName": "{Default IP address HTTP header name}",
+	"CloudFunctionHttpBaseAddress": "{Cloud function HTTP base address}",
+	"HttpProxy": "{proxy address:port}"
 }
 ```
 Deserialize the configuration settings
