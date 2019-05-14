@@ -118,7 +118,8 @@ namespace Bwrx.Api
                 {
                     [nameof(BigQueryClient)] = bigQueryClient,
                     [nameof(Blacklist)] = blacklist,
-                    [nameof(Whitelist)] = whitelist
+                    [nameof(Whitelist)] = whitelist,
+                    [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
                 }
             };
 

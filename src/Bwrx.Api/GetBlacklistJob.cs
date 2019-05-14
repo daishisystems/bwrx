@@ -16,11 +16,15 @@ namespace Bwrx.Api
                 var bigQueryClient = (BigQueryClient) dataMap[nameof(BigQueryClient)];
                 var blacklist = (Blacklist) dataMap[nameof(Blacklist)];
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
+                var clientConfigSettings = (ClientConfigSettings) dataMap[nameof(ClientConfigSettings)];
 
                 var latestWhitelist = await whitelist.GetLatestAsync(bigQueryClient);
                 whitelist.UpDate(latestWhitelist.ToList());
 
-                var latestBlacklist = await blacklist.GetLatestAsync(bigQueryClient, whitelist.IpAddressIndex);
+                var latestBlacklist = await blacklist.GetLatestAsync(
+                    bigQueryClient,
+                    whitelist.IpAddressIndex,
+                    clientConfigSettings.BlacklistPartitionIntervalDays);
                 blacklist.UpDate(latestBlacklist);
             }
             catch (Exception exception)

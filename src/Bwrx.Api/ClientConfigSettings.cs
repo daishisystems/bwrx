@@ -23,5 +23,6 @@ namespace Bwrx.Api
         public string CloudFunctionHttpBaseAddress { get; set; }
         public string HttpProxy { get; set; }
         public string CloudFunctionRequestUri { get; set; } = string.Empty;
+        public int BlacklistPartitionIntervalDays { get; set; } = 2;
     }
 }

@@ -68,17 +68,19 @@ namespace Bwrx.Api
 
         public async Task<IEnumerable<IPAddress>> GetLatestAsync(
             BigQueryClient bigQueryClient,
-            HashSet<IPAddress> whitelistedIpAddresses)
+            HashSet<IPAddress> whitelistedIpAddresses,
+            int blacklistPartitionIntervalDays)
         {
             if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
             if (whitelistedIpAddresses == null) throw new ArgumentNullException(nameof(whitelistedIpAddresses));
 
-            const string getBlacklistQuery = @"SELECT
+            var getBlacklistQuery = @"SELECT
                   ipaddress
                 FROM
                   ipaddress_lists.blacklist
                 WHERE
-                  _PARTITIONTIME BETWEEN TIMESTAMP_TRUNC(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 * 24 HOUR),DAY)
+                  _PARTITIONTIME BETWEEN TIMESTAMP_TRUNC(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL " +
+                                    blacklistPartitionIntervalDays + @" * 24 HOUR),DAY)
                   AND TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(),DAY);";
 
             var blacklist = new List<IPAddress>();
