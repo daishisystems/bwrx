@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>Bwrx</Authors>
     <title>Botworks API</title>
     <Description>High-throughput, low-overhead API designed to monitor and prevent bad actors from accessing your application</Description>

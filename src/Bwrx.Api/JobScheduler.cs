@@ -190,7 +190,8 @@ namespace Bwrx.Api
                 JobDataMap =
                 {
                     [nameof(EventTransmissionClient)] = eventTransmissionClient,
-                    [nameof(EventMetaCache)] = eventMetaCache
+                    [nameof(EventMetaCache)] = eventMetaCache,
+                    [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
                 }
             };
 

@@ -13,9 +13,16 @@ namespace Bwrx.Api
                 var dataMap = context.JobDetail.JobDataMap;
                 var eventMetaCache = (EventMetaCache) dataMap[nameof(EventMetaCache)];
                 var eventTransmissionClient = (EventTransmissionClient) dataMap[nameof(EventTransmissionClient)];
+                var clientConfigSettings = (ClientConfigSettings) dataMap[nameof(ClientConfigSettings)];
 
                 var eventMetadataPayloadBatch = eventMetaCache.GetEventMetadataPayloadBatch();
-                await eventTransmissionClient.TransmitAsync(eventMetadataPayloadBatch);
+
+                if (clientConfigSettings.UsegRpc)
+                    await eventTransmissionClient.TransmitOvergRpcAsync(eventMetadataPayloadBatch);
+                else
+                    await eventTransmissionClient.TransmitOverHttpAsync(
+                        eventMetadataPayloadBatch,
+                        clientConfigSettings.CloudFunctionRequestUri);
             }
             catch (Exception exception)
             {

@@ -39,6 +39,8 @@ namespace Bwrx.Tests.Integration
                     clientConfigSettings =
                         JsonConvert.DeserializeObject<ClientConfigSettings>(client
                             .GetStringAsync(Resources.ConfigFileUri).Result);
+                    clientConfigSettings.UsegRpc = true;
+                    clientConfigSettings.CloudFunctionHttpBaseAddress = "{empty}";
                 }
 
                 var publisherCredential = GoogleCredential.FromJson(JsonConvert.SerializeObject(gcpServiceCredentials))
@@ -144,7 +146,7 @@ namespace Bwrx.Tests.Integration
                     gcpServiceCredentials,
                     dataTransmissionClientConfigSettings).Wait();
 
-                dataTransmissionClient.TransmitAsync(eventMetadataCache.GetEventMetadataPayloadBatch()).Wait();
+                dataTransmissionClient.TransmitOvergRpcAsync(eventMetadataCache.GetEventMetadataPayloadBatch()).Wait();
 
                 var counter = 0;
                 PullMessage(() => { counter++; },

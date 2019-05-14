@@ -19,5 +19,9 @@ namespace Bwrx.Api
         public int BlockingHttpStatusCode { get; set; } = 403;
         public string IpAddressHeaderName { get; set; }
         public bool PassiveBlockingMode { get; set; }
+        public bool UsegRpc { get; set; }
+        public string CloudFunctionHttpBaseAddress { get; set; }
+        public string HttpProxy { get; set; }
+        public string CloudFunctionRequestUri { get; set; } = string.Empty;
     }
 }
