@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
-    <Version>1.3.1</Version>
+    <Version>1.3.2</Version>
     <Authors>Bwrx</Authors>
     <title>Botworks API</title>
     <Description>High-throughput, low-overhead API designed to monitor and prevent bad actors from accessing your application</Description>
@@ -13,7 +13,7 @@
     <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
     <PackageTags>bwrx</PackageTags>
     <RepositoryUrl>https://github.com/daishisystems/bwrx</RepositoryUrl>
-    <PackageReleaseNotes>Removed unused HTTP response meta</PackageReleaseNotes>
+    <PackageReleaseNotes>Downgraded client packages</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="4.0.20710.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">

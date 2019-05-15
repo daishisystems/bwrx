@@ -25,7 +25,7 @@ namespace Bwrx.Api
 
         public static EventMetaCache Instance => Lazy.Value;
 
-        public int MaxQueueLength { get; set; } = 175000;
+        public int MaxQueueLength { get; set; } = 175000; // todo: make this variable
 
         public event EventHandlers.EventMetaAddedEventHandler EventMetaAdded;
         public event EventHandlers.AddEventMetaFailedEventHandler AddEventMetaFailed;
@@ -140,7 +140,7 @@ namespace Bwrx.Api
 #endif
 
         public IEnumerable<string> GetEventMetadataPayloadBatch(
-            int maxItemsToRemove = 1000)
+            int maxItemsToRemove = 1000) // todo: 2250 @ 9MB. Make variable
         {
             if (maxItemsToRemove > 1000)
                 throw new IndexOutOfRangeException(
