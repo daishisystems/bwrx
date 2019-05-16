@@ -35,8 +35,7 @@ Note, this examples assumes that the `CloudServiceCredentials` JSON values are s
 A `ClientConfigSettings` instance is necessary to configure the Botworks API. Configuration meta is stored in JSON format 
 ```json
 {
-	"ProjectId": "{Project ID}",
-	"PublisherTopicId": "{Publisher Topic ID}",
+	"ProjectId": "{Project ID}",	
 	"BlockingHttpStatusCode": 403,
 	"IpAddressHeaderName": "{Default IP address HTTP header name}",
 	"CloudFunctionHttpBaseAddress": "{Cloud function HTTP base address}",
