@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Bwrx.Api;
@@ -54,16 +53,10 @@ namespace Bwrx.Tests.Unit
         }
 
         [Fact]
-        public void CantDequeueMoreThan1000EventsPerRun()
-        {
-            var eventMetadataCache = new EventMetaCache();
-            Assert.Throws<IndexOutOfRangeException>(() => eventMetadataCache.GetEventMetadataPayloadBatch(1001));
-        }
-
-        [Fact]
         public void Top50EventMetadataPayloadsAreDequeued()
         {
-            var eventMetadataCache = new EventMetaCache();
+            var eventMetadataCache = new EventMetaCache {MaxItemsToDequeue = 50};
+
             var httpHeaders = new Dictionary<string, string>
                 {{"User-Agent", "USERAGENT"}, {"Content-Type", "CONTENT"}};
 
@@ -77,7 +70,7 @@ namespace Bwrx.Tests.Unit
                     "QUERY",
                     httpHeaders);
 
-            var eventMetadataPayloadBatch = eventMetadataCache.GetEventMetadataPayloadBatch(50);
+            var eventMetadataPayloadBatch = eventMetadataCache.GetEventMetadataPayloadBatch();
             Assert.Equal(50, eventMetadataPayloadBatch.Count());
         }
     }

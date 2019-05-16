@@ -58,6 +58,7 @@ namespace Bwrx.Api
             try
             {
                 eventMetaCache.MaxQueueLength = eventTransmissionClientConfigSettings.MaxQueueLength;
+                eventMetaCache.MaxItemsToDequeue = eventTransmissionClientConfigSettings.MaxItemsToDequeue;
 
                 var factory = new StdSchedulerFactory(new NameValueCollection
                 {

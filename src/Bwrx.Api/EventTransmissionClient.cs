@@ -45,8 +45,6 @@ namespace Bwrx.Api
                 throw new ArgumentNullException(nameof(clientConfigSettings));
             if (string.IsNullOrEmpty(clientConfigSettings.ProjectId))
                 throw new ArgumentNullException(nameof(clientConfigSettings.ProjectId));
-            if (string.IsNullOrEmpty(clientConfigSettings.PublisherTopicId))
-                throw new ArgumentNullException(nameof(clientConfigSettings.PublisherTopicId));
             if (string.IsNullOrEmpty(clientConfigSettings.CloudFunctionHttpBaseAddress))
                 throw new ArgumentNullException(nameof(clientConfigSettings.CloudFunctionHttpBaseAddress));
 
