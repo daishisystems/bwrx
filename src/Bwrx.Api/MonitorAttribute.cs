@@ -24,13 +24,12 @@ namespace Bwrx.Api
         public string EventName { get; }
         public bool AllowMultiple { get; }
 
-        public Task<HttpResponseMessage> ExecuteActionFilterAsync(
+        public async Task<HttpResponseMessage> ExecuteActionFilterAsync(
             HttpActionContext actionContext,
             CancellationToken cancellationToken,
             Func<Task<HttpResponseMessage>> continuation)
         {
-            var result = continuation();
-            result.Wait(cancellationToken);
+            var result = await continuation();
 
             bool gotIpAddressHttpHeaders;
             IEnumerable<string> ipAddressHttpHeaderValues;
