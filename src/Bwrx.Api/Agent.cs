@@ -30,8 +30,6 @@ namespace Bwrx.Api
 
         public static Agent Instance => Lazy.Value;
 
-        private BigQueryClient _bigQueryClient;
-
         public ClientConfigSettings ClientConfigSettings { get; private set; }
 
         public bool Initialised { get; set; }
@@ -113,31 +111,17 @@ namespace Bwrx.Api
 
             if (!EventTransmissionClient.Instance.Initialised) return;
 
-            var bigQueryConnectionEstablished = false;
-            try
-            {
-                var googleCredential = GoogleCredential.FromJson(JsonConvert.SerializeObject(cloudServiceCredentials));
-                _bigQueryClient = BigQueryClient.Create(clientConfigSettings.ProjectId, googleCredential);
-                bigQueryConnectionEstablished = true;
-            }
-            catch (Exception exception)
-            {
-                const string errorMessage = "Could not establish a connection to the cloud database.";
-                OnCloudDatabaseConnectionFailed(
-                    new CloudDatabaseConnectionFailedEventArgs(new Exception(errorMessage, exception)));
-            }
-
-            if (!bigQueryConnectionEstablished) return;
+            Blacklist.Instance.Init(clientConfigSettings);
+            Whitelist.Instance.Init(clientConfigSettings);
 
             JobScheduler.Instance.StartAsync(
                 EventTransmissionClient.Instance,
-                _bigQueryClient,
                 EventMetaCache.Instance,
                 Blacklist.Instance,
                 Whitelist.Instance,
                 clientConfigSettings).Wait();
 
-            Initialised = true;
+            Initialised = true; // todo: Will always be true - errors are swallowed
         }
 
         public void AddEvent<T>(

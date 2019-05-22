@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Bwrx.Api
+﻿namespace Bwrx.Api
 {
     public class ClientConfigSettings
     {
@@ -20,6 +18,8 @@ namespace Bwrx.Api
         public bool PassiveBlockingMode { get; set; }
         public bool UsegRpc { get; set; }
         public string CloudFunctionHttpBaseAddress { get; set; }
+        public string BlacklistUri { get; set; }
+        public string WhitelistUri { get; set; }
         public string HttpProxy { get; set; }
         public string CloudFunctionRequestUri { get; set; } = string.Empty;
         public int BlacklistPartitionIntervalDays { get; set; } = 2;

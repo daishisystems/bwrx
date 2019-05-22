@@ -16,7 +16,7 @@ namespace Bwrx.Api
                 var bigQueryClient = (BigQueryClient) dataMap[nameof(BigQueryClient)];
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
 
-                var latestWhitelist = await whitelist.GetLatestAsync(bigQueryClient);
+                var latestWhitelist = await whitelist.GetLatestAsync();
                 whitelist.UpDate(latestWhitelist.ToList());
             }
             catch (Exception exception)

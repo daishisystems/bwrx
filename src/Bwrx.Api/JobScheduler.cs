@@ -12,7 +12,7 @@ namespace Bwrx.Api
     {
         public delegate void JobSchedulerStartFailedEventHandler(object sender, JobSchedulerStartFailedEventArgs e);
 
-        private static readonly Lazy<JobScheduler> InnerDataUploader =
+        private static readonly Lazy<JobScheduler> InnerJobScheduler =
             new Lazy<JobScheduler>(() => new JobScheduler());
 
         private JobDetailImpl _eventMetadataPublishJobDetail;
@@ -29,7 +29,7 @@ namespace Bwrx.Api
 
         private IScheduler _scheduler;
 
-        public static JobScheduler Instance => InnerDataUploader.Value;
+        public static JobScheduler Instance => InnerJobScheduler.Value;
 
         public event JobSchedulerStartFailedEventHandler JobSchedulerStartFailed;
 
@@ -41,14 +41,12 @@ namespace Bwrx.Api
 
         public async Task StartAsync(
             EventTransmissionClient eventTransmissionClient,
-            BigQueryClient bigQueryClient,
             EventMetaCache eventMetaCache,
             Blacklist blacklist,
             Whitelist whitelist,
             ClientConfigSettings eventTransmissionClientConfigSettings)
         {
             if (eventTransmissionClient == null) throw new ArgumentNullException(nameof(eventTransmissionClient));
-            if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
             if (eventMetaCache == null) throw new ArgumentNullException(nameof(eventMetaCache));
             if (blacklist == null) throw new ArgumentNullException(nameof(blacklist));
             if (whitelist == null) throw new ArgumentNullException(nameof(whitelist));
@@ -65,7 +63,7 @@ namespace Bwrx.Api
                     ["quartz.threadPool.threadCount"] = eventTransmissionClientConfigSettings.MaxThreadCount.ToString()
                 });
                 _scheduler = await factory.GetScheduler();
-
+                
                 await _scheduler.Start();
 
                 try
@@ -85,7 +83,6 @@ namespace Bwrx.Api
                 try
                 {
                     await StartGetBlacklistJob(
-                        bigQueryClient,
                         blacklist,
                         whitelist,
                         eventTransmissionClientConfigSettings);
@@ -104,7 +101,6 @@ namespace Bwrx.Api
         }
 
         private async Task StartGetBlacklistJob(
-            BigQueryClient bigQueryClient,
             Blacklist blacklist,
             Whitelist whitelist,
             ClientConfigSettings eventTransmissionClientConfigSettings)
@@ -117,10 +113,8 @@ namespace Bwrx.Api
             {
                 JobDataMap =
                 {
-                    [nameof(BigQueryClient)] = bigQueryClient,
                     [nameof(Blacklist)] = blacklist,
-                    [nameof(Whitelist)] = whitelist,
-                    [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
+                    [nameof(Whitelist)] = whitelist
                 }
             };
 

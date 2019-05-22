@@ -3,8 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
+using Newtonsoft.Json;
 
 namespace Bwrx.Api
 {
@@ -16,6 +19,8 @@ namespace Bwrx.Api
         {
             IpAddresses = new ConcurrentBag<IPAddress>();
         }
+
+        private HttpClient _httpClient;
 
         public static Blacklist Instance => Lazy.Value;
 
@@ -32,6 +37,31 @@ namespace Bwrx.Api
         public event EventHandlers.GetLatestListFailedEventHandler GetLatestBlacklistFailed;
 
         public event EventHandlers.CouldNotParseIpAddressEventHandler CouldNotParseIpAddress;
+
+        public void Init(ClientConfigSettings clientConfigSettings)
+        {
+            if (clientConfigSettings == null) throw new ArgumentNullException(nameof(clientConfigSettings));
+
+            if (!string.IsNullOrEmpty(clientConfigSettings.HttpProxy))
+            {
+                var httpClientHandler = new HttpClientHandler
+                {
+                    Proxy = new WebProxy(clientConfigSettings.HttpProxy),
+                    UseProxy = true
+                };
+                _httpClient = new HttpClient(httpClientHandler)
+                {
+                    BaseAddress = new Uri(clientConfigSettings.BlacklistUri)
+                };
+            }
+            else
+            {
+                _httpClient = new HttpClient
+                {
+                    BaseAddress = new Uri(clientConfigSettings.BlacklistUri)
+                };
+            }
+        }
 
         public bool IsIpAddressBlacklisted(IPAddress ipAddressToFind)
         {
@@ -67,42 +97,29 @@ namespace Bwrx.Api
         }
 
         public async Task<IEnumerable<IPAddress>> GetLatestAsync(
-            BigQueryClient bigQueryClient,
-            HashSet<IPAddress> whitelistedIpAddresses,
-            int blacklistPartitionIntervalDays)
+            HashSet<IPAddress> whitelistedIpAddresses)
         {
-            if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
             if (whitelistedIpAddresses == null) throw new ArgumentNullException(nameof(whitelistedIpAddresses));
-
-            var getBlacklistQuery = @"SELECT
-                  ipaddress
-                FROM
-                  ipaddress_lists.blacklist
-                WHERE
-                  _PARTITIONTIME BETWEEN TIMESTAMP_TRUNC(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL " +
-                                    blacklistPartitionIntervalDays + @" * 24 HOUR),DAY)
-                  AND TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(),DAY);";
 
             var blacklist = new List<IPAddress>();
             try
             {
-                var data = await bigQueryClient.ExecuteQueryAsync(getBlacklistQuery, null);
+                var httpResponse = await _httpClient.GetStringAsync(string.Empty);
+                var rawIpAddresses =
+                    JsonConvert.DeserializeObject<IEnumerable<ListIpAddress>>(httpResponse);
 
-                foreach (var row in data)
+                var ipAddresses = new List<IPAddress>();
+                foreach (var rawIpAddress in rawIpAddresses)
                 {
-                    const string ipAddressMetaName = "ipaddress";
-                    var ipAddressMeta = row[ipAddressMetaName].ToString();
+                    var canParse = IPAddress.TryParse(rawIpAddress.IpAddress, out var ipAddress);
 
-                    var canParse = IPAddress.TryParse(ipAddressMeta, out var ipAddress);
                     if (canParse)
-                    {
-                        if (!whitelistedIpAddresses.Contains(ipAddress)) blacklist.Add(ipAddress);
-                    }
+                        ipAddresses.Add(ipAddress);
                     else
-                    {
-                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(ipAddressMeta));
-                    }
+                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(rawIpAddress.IpAddress));
                 }
+
+                blacklist.AddRange(ipAddresses.Where(ipAddress => !whitelistedIpAddresses.Contains(ipAddress)));
 
                 OnGotLatestBlacklist(new GotLatestListEventArgs(blacklist.Count));
                 return blacklist;

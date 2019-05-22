@@ -3,14 +3,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
+using Newtonsoft.Json;
 
 namespace Bwrx.Api
 {
     public class Whitelist
     {
         private static readonly Lazy<Whitelist> Lazy = new Lazy<Whitelist>(() => new Whitelist());
+
+        private HttpClient _httpClient;
 
         public Whitelist()
         {
@@ -34,6 +38,31 @@ namespace Bwrx.Api
         public event EventHandlers.GetLatestListFailedEventHandler GetLatestWhitelistFailed;
 
         public event EventHandlers.CouldNotParseIpAddressEventHandler CouldNotParseIpAddress;
+
+        public void Init(ClientConfigSettings clientConfigSettings)
+        {
+            if (clientConfigSettings == null) throw new ArgumentNullException(nameof(clientConfigSettings));
+
+            if (!string.IsNullOrEmpty(clientConfigSettings.HttpProxy))
+            {
+                var httpClientHandler = new HttpClientHandler
+                {
+                    Proxy = new WebProxy(clientConfigSettings.HttpProxy),
+                    UseProxy = true
+                };
+                _httpClient = new HttpClient(httpClientHandler)
+                {
+                    BaseAddress = new Uri(clientConfigSettings.WhitelistUri)
+                };
+            }
+            else
+            {
+                _httpClient = new HttpClient
+                {
+                    BaseAddress = new Uri(clientConfigSettings.WhitelistUri)
+                };
+            }
+        }
 
         public bool AddIPAddress(IPAddress ipAddress)
         {
@@ -61,31 +90,23 @@ namespace Bwrx.Api
             OnWhitelistUpdated(new EventArgs());
         }
 
-        public async Task<IEnumerable<IPAddress>>
-            GetLatestAsync(BigQueryClient bigQueryClient)
+        public async Task<IEnumerable<IPAddress>> GetLatestAsync()
         {
-            if (bigQueryClient == null) throw new ArgumentNullException(nameof(bigQueryClient));
-
-            const string getWhitelistQuery = @"SELECT
-                  ipaddress
-                FROM
-                  ipaddress_lists.whitelist;";
-
             var whiteList = new List<IPAddress>();
             try
             {
-                var data = await bigQueryClient.ExecuteQueryAsync(getWhitelistQuery, null);
+                var httpResponse = await _httpClient.GetStringAsync(string.Empty);
+                var rawIpAddresses =
+                    JsonConvert.DeserializeObject<IEnumerable<ListIpAddress>>(httpResponse);
 
-                foreach (var row in data)
+                foreach (var rawIpAddress in rawIpAddresses)
                 {
-                    const string ipAddressMetaName = "ipaddress";
-                    var ipAddressMeta = row[ipAddressMetaName].ToString();
+                    var canParse = IPAddress.TryParse(rawIpAddress.IpAddress, out var ipAddress);
 
-                    var canParse = IPAddress.TryParse(ipAddressMeta, out var ipAddress);
                     if (canParse)
                         whiteList.Add(ipAddress);
                     else
-                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(ipAddressMeta));
+                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(rawIpAddress.IpAddress));
                 }
 
                 OnGotLatestWhitelist(new GotLatestListEventArgs(whiteList.Count));
