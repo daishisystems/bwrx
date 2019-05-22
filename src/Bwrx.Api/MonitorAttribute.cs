@@ -30,6 +30,7 @@ namespace Bwrx.Api
             Func<Task<HttpResponseMessage>> continuation)
         {
             var result = await continuation();
+            if (!Agent.Instance.Initialised) return result;
 
             bool gotIpAddressHttpHeaders;
             IEnumerable<string> ipAddressHttpHeaderValues;

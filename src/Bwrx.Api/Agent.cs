@@ -34,6 +34,8 @@ namespace Bwrx.Api
 
         public ClientConfigSettings ClientConfigSettings { get; private set; }
 
+        public bool Initialised { get; set; }
+
         public event EventHandlers.EventMetaAddedEventHandler EventMetaAdded;
         public event EventHandlers.AddEventMetaFailedEventHandler AddEventMetaFailed;
         public event EventHandlers.GetEventMetadataPayloadBatchFailedEventHandler GetEventMetadataPayloadBatchFailed;
@@ -134,6 +136,8 @@ namespace Bwrx.Api
                 Blacklist.Instance,
                 Whitelist.Instance,
                 clientConfigSettings).Wait();
+
+            Initialised = true;
         }
 
         public void AddEvent<T>(
