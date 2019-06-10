@@ -25,6 +25,7 @@ namespace Bwrx.Api
             _ipAddressHeaderName = clientConfigSettings.IpAddressHeaderName;
             _blockingHttpStatusCode = clientConfigSettings.BlockingHttpStatusCode;
             _passiveMode = clientConfigSettings.PassiveBlockingMode;
+            Agent.Instance.HandlerIsInitialised = true;
         }
 
         public event EventHandlers.CouldNotParseIpAddressHttpHeaderValuesEventHandler

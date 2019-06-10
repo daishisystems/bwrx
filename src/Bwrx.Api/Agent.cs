@@ -34,6 +34,8 @@ namespace Bwrx.Api
 
         public bool Initialised { get; set; }
 
+        public bool HandlerIsInitialised { get; set; }
+
         public event EventHandlers.EventMetaAddedEventHandler EventMetaAdded;
         public event EventHandlers.AddEventMetaFailedEventHandler AddEventMetaFailed;
         public event EventHandlers.GetEventMetadataPayloadBatchFailedEventHandler GetEventMetadataPayloadBatchFailed;

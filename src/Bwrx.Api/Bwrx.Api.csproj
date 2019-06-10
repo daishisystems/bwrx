@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
-    <Version>1.3.5</Version>
+    <Version>1.3.6</Version>
     <Authors>Bwrx</Authors>
     <title>Botworks API</title>
     <Description>High-throughput, low-overhead API designed to monitor and prevent bad actors from accessing your application</Description>
@@ -13,7 +13,7 @@
     <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
     <PackageTags>bwrx</PackageTags>
     <RepositoryUrl>https://github.com/daishisystems/bwrx</RepositoryUrl>
-    <PackageReleaseNotes>Switched [black|white]list protocol from gRPC to HTTPS</PackageReleaseNotes>
+    <PackageReleaseNotes>Added MessageHandler Initialised property to Agent.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
