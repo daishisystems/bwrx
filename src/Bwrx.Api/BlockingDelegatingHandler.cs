@@ -36,11 +36,11 @@ namespace Bwrx.Api
 
         public event EventHandlers.BlacklistedIpAddressDetectedEventHandler BlacklistedIpAddressDetected;
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            if (!Agent.Instance.Initialised) return base.SendAsync(request, cancellationToken);
+            if (!Agent.Instance.Initialised) return await base.SendAsync(request, cancellationToken);
 
             var gotIpAddressHttpHeaders = false;
             IEnumerable<string> ipAddressHttpHeaderValues = null;
@@ -62,7 +62,7 @@ namespace Bwrx.Api
             {
                 OnCouldNotGetIpAddressHttpHeaderValues(
                     new CouldNotGetIpAddressHttpHeaderValuesEventArgs(_ipAddressHeaderName));
-                return base.SendAsync(request, cancellationToken);
+                return await base.SendAsync(request, cancellationToken);
             }
 
             var canParseIpAddressHeaders = false;
@@ -82,35 +82,49 @@ namespace Bwrx.Api
             {
                 OnCouldNotParseIpAddressHttpHeaderValues(new CouldNotParseIpAddressHttpHeaderValuesEventArgs(
                     request.Headers.GetValues(_ipAddressHeaderName)));
-                return base.SendAsync(request, cancellationToken);
+                return await base.SendAsync(request, cancellationToken);
             }
 
+            // todo: All IPs are flagged as malicious, including blacklisted IP.
+            // Could cause issues if an IP originates from AWS, RYR ...
             var blacklistedIpAddresses = ipAddresses
                 .Where(ipAddress => Blacklist.Instance.IsIpAddressBlacklisted(ipAddress))
                 .ToList();
 
-            if (blacklistedIpAddresses.Count == 0) return base.SendAsync(request, cancellationToken);
-
+            if (blacklistedIpAddresses.Count == 0) return await base.SendAsync(request, cancellationToken);
+            
             var canParseBlockingHttpStatusCode =
                 Enum.TryParse(_blockingHttpStatusCode.ToString(), out HttpStatusCode blockingHttpStatusCode);
 
             if (!canParseBlockingHttpStatusCode) blockingHttpStatusCode = HttpStatusCode.Forbidden;
+            var httpContent = await request.Content.ReadAsStringAsync();
 
             var ipAddressEntryAttempt = new IpAddressEntryAttempt
             {
                 IpAddresses = blacklistedIpAddresses.Select(ip => ip.ToString()),
-                PassiveMode = _passiveMode
+                PassiveMode = _passiveMode,
+                Uri = request.RequestUri.ToString(),
+                HttpMethod = request.Method.ToString(),
+                QueryString = request.RequestUri.Query,
+                HttpContent = httpContent
             };
             EventMetaCache.Instance.Add(ipAddressEntryAttempt, "Scrape");
 
             OnBlacklistedIpAddressDetected(
-                new BlacklistedIpAddressDetectedEventArgs(blacklistedIpAddresses, _passiveMode));
-            if (_passiveMode) return base.SendAsync(request, cancellationToken);
+                new BlacklistedIpAddressDetectedEventArgs(
+                    blacklistedIpAddresses,
+                    _passiveMode,
+                    request.RequestUri.ToString(),
+                    request.Method.ToString(),
+                    request.RequestUri.Query,
+                    httpContent));
+
+            if (_passiveMode) return await base.SendAsync(request, cancellationToken);
 
             var response = new HttpResponseMessage(blockingHttpStatusCode);
             var tsc = new TaskCompletionSource<HttpResponseMessage>();
             tsc.SetResult(response);
-            return tsc.Task;
+            return await tsc.Task;
         }
 
         private void OnCouldNotParseIpAddressHttpHeaderValues(
