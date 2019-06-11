@@ -40,6 +40,8 @@ namespace Bwrx.Api
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            if (!Agent.Instance.Initialised) return base.SendAsync(request, cancellationToken);
+
             var gotIpAddressHttpHeaders = false;
             IEnumerable<string> ipAddressHttpHeaderValues = null;
             try
