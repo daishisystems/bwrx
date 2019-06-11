@@ -173,15 +173,14 @@ namespace Bwrx.Api
             if (ipAddressHttpHeaderValues != null)
             {
                 var parsedIpAddresses = new List<IPAddress>();
-                var ipAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
 
                 foreach (var ipAddressHttpHeaderValue in ipAddressHttpHeaderValues)
                 {
-                    var matches = ipAddressRegex.Matches(ipAddressHttpHeaderValue);
+                    var rawIpAddresses = ipAddressHttpHeaderValue.Split(',');
 
-                    foreach (Match match in matches)
+                    foreach (var rawIpAddress in rawIpAddresses)
                     {
-                        var isIpAddress = IPAddress.TryParse(match.ToString(), out var ipAddress);
+                        var isIpAddress = IPAddress.TryParse(rawIpAddress.Trim(), out var ipAddress);
                         if (isIpAddress) parsedIpAddresses.Add(ipAddress);
                     }
                 }
@@ -283,7 +282,7 @@ namespace Bwrx.Api
 
             ipAddressHttpHeaders = new List<string>();
             return false;
-        }        
+        }
 #endif
         private void OnCloudDatabaseConnectionFailed(CloudDatabaseConnectionFailedEventArgs e)
         {

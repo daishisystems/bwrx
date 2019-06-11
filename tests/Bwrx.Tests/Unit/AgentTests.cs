@@ -64,15 +64,14 @@ namespace Bwrx.Tests.Unit
         [Fact]
         public void IpAddressesAreParsed()
         {
-            const string ipAddress1 = "83c881f4-03a3-192.168.0.14fd2-9622-9fa42427ddeb";
-            const string ipAddress2 = "83c881f4-03a3-192.168.0.1192.168.0.24fd2-9622-9fa42427ddeb";
-            const string ipAddress3 = "83c881f4-03a3-192.168.0.14fd2-9622-9fa42427ddeb";
+            const string ipAddress1 = "192.168.0.14";
+            const string ipAddress2 = "2a02:c7d:b9b:6700:2108:fdfd:b367:c460 ";
 
-            var ipAddressText = new List<string> {ipAddress1, ipAddress2, ipAddress3};
+            var ipAddressText = new List<string> {ipAddress1, ipAddress2};
             var ipAddressesAreParsed = Agent.TryParseIpAddresses(ipAddressText, out var ipAddresses);
 
             Assert.True(ipAddressesAreParsed);
-            Assert.Equal(4, ipAddresses.Count());
+            Assert.Equal(2, ipAddresses.Count());
         }
 
         [Fact]

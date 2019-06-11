@@ -62,7 +62,9 @@ namespace Bwrx.Api
                 };
             }
         }
-
+        
+        // todo: Use O(1) collection
+        // todo: Flatten to IP ranges collection
         public bool IsIpAddressBlacklisted(IPAddress ipAddressToFind)
         {
             return IpAddresses.Contains(ipAddressToFind);

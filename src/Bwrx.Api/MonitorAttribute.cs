@@ -43,11 +43,15 @@ namespace Bwrx.Api
             }
             catch (Exception exception)
             {
-                const string errorMessage = "Could not get IP address HTTP headers.";
+                const string errorMessage = "Error getting IP address HTTP headers.";
                 Agent.Instance.OnCouldNotGetIpAddressHttpHeaderValues(
                     new CouldNotGetIpAddressHttpHeaderValuesEventArgs(
                         Agent.Instance.ClientConfigSettings.IpAddressHeaderName,
                         new Exception(errorMessage, exception)));
+
+                var queryString = actionContext.Request.GetQueryNameValuePairs();
+                EventMetaCache.Instance.Add(EventName, queryString, new List<string>(), actionContext.Request.Headers);
+
                 return result;
             }
 
@@ -56,7 +60,6 @@ namespace Bwrx.Api
                 Agent.Instance.OnCouldNotGetIpAddressHttpHeaderValues(
                     new CouldNotGetIpAddressHttpHeaderValuesEventArgs(
                         Agent.Instance.ClientConfigSettings.IpAddressHeaderName));
-
 
                 var queryString = actionContext.Request.GetQueryNameValuePairs();
                 EventMetaCache.Instance.Add(EventName, queryString, new List<string>(), actionContext.Request.Headers);
@@ -72,12 +75,16 @@ namespace Bwrx.Api
             }
             catch (Exception exception)
             {
-                const string errorMessage = "Could not parse IP addresses from HTTP headers";
+                const string errorMessage = "Error parsing IP addresses from HTTP headers";
                 Agent.Instance.OnCouldNotParseIpAddressHttpHeaderValues(
                     new CouldNotParseIpAddressHttpHeaderValuesEventArgs(
                         actionContext.Request.Headers.GetValues(Agent.Instance.ClientConfigSettings
                             .IpAddressHeaderName),
                         new Exception(errorMessage, exception)));
+
+                var queryString = actionContext.Request.GetQueryNameValuePairs();
+                EventMetaCache.Instance.Add(EventName, queryString, new List<string>(), actionContext.Request.Headers);
+
                 return result;
             }
 
