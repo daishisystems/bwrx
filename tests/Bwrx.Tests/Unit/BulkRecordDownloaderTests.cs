@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Bwrx.Api;
 using Xunit;
 
@@ -40,6 +41,25 @@ namespace Bwrx.Tests.Unit
             {
                 bulkDataDownloader.CalcNumHttpRequestsRequired(10, 0);
             });
+        }
+
+        // todo: Test guards
+        [Fact]
+        public void PaginationSequenceIsCalculated()
+        {
+            var bulkDataDownloader = new BulkDataDownloader();
+            var paginationSequence = bulkDataDownloader.CalcPaginationSequence(5, 10).ToList();
+
+            Assert.Equal(1, paginationSequence[0].Item1);
+            Assert.Equal(10, paginationSequence[0].Item2);
+            Assert.Equal(11, paginationSequence[1].Item1);
+            Assert.Equal(10, paginationSequence[1].Item2);
+            Assert.Equal(21, paginationSequence[2].Item1);
+            Assert.Equal(10, paginationSequence[2].Item2);
+            Assert.Equal(31, paginationSequence[3].Item1);
+            Assert.Equal(10, paginationSequence[3].Item2);
+            Assert.Equal(41, paginationSequence[4].Item1);
+            Assert.Equal(10, paginationSequence[4].Item2);
         }
     }
 }

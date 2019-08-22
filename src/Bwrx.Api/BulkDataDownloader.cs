@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -7,15 +8,6 @@ namespace Bwrx.Api
 {
     public class BulkDataDownloader
     {
-        public BulkDataDownloader()
-        {
-        }
-
-        public BulkDataDownloader(ClientConfigSettings clientConfigSettings)
-        {
-            if (clientConfigSettings == null) throw new ArgumentNullException(nameof(clientConfigSettings));
-        }
-
         public async Task<RecordCount> GetRecordCount(HttpClient httpClient, string requestUri)
         {
             if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
@@ -38,6 +30,26 @@ namespace Bwrx.Api
             if (maxNumRecordsPerHttpRequest <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxNumRecordsPerHttpRequest));
             return numRecords / maxNumRecordsPerHttpRequest + 1;
+        }
+
+        // todo: Guard this
+        public IEnumerable<Tuple<int, int>> CalcPaginationSequence(
+            int numHttpRequestsRequired,
+            int maxNumRecordsPerHttpRequest)
+        {
+            if (numHttpRequestsRequired < 0) throw new ArgumentOutOfRangeException(nameof(numHttpRequestsRequired));
+            if (maxNumRecordsPerHttpRequest < 0)
+                throw new ArgumentOutOfRangeException(nameof(maxNumRecordsPerHttpRequest));
+            var paginationSequences = new List<Tuple<int, int>>();
+            var previousIndex = 1;
+            for (var i = 0; i < numHttpRequestsRequired; i++)
+            {
+                var paginationSequence = new Tuple<int, int>(previousIndex, maxNumRecordsPerHttpRequest);
+                previousIndex += maxNumRecordsPerHttpRequest;
+                paginationSequences.Add(paginationSequence);
+            }
+
+            return paginationSequences;
         }
     }
 
