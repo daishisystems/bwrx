@@ -7,6 +7,15 @@ namespace Bwrx.Api
 {
     public class BulkDataDownloader
     {
+        public BulkDataDownloader()
+        {
+        }
+
+        public BulkDataDownloader(ClientConfigSettings clientConfigSettings)
+        {
+            if (clientConfigSettings == null) throw new ArgumentNullException(nameof(clientConfigSettings));
+        }
+
         public async Task<RecordCount> GetRecordCount(HttpClient httpClient, string requestUri)
         {
             if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
@@ -21,6 +30,14 @@ namespace Bwrx.Api
             {
                 throw new Exception("Unable to get record-count", e);
             }
+        }
+
+        public int CalcNumHttpRequestsRequired(int numRecords, int maxNumRecordsPerHttpRequest)
+        {
+            if (numRecords <= 0) throw new ArgumentOutOfRangeException(nameof(numRecords));
+            if (maxNumRecordsPerHttpRequest <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxNumRecordsPerHttpRequest));
+            return numRecords / maxNumRecordsPerHttpRequest + 1;
         }
     }
 

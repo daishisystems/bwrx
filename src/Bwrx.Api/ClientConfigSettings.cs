@@ -22,6 +22,6 @@
         public string WhitelistUri { get; set; }
         public string HttpProxy { get; set; }
         public string CloudFunctionRequestUri { get; set; } = string.Empty;
-        public int BlacklistPartitionIntervalDays { get; set; } = 2;
+        public int MaxNumIpAddressesPerHttpRequest { get; set; } = 300000;
     }
 }
