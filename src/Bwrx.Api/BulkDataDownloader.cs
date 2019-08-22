@@ -8,7 +8,7 @@ namespace Bwrx.Api
 {
     public class BulkDataDownloader
     {
-        public async Task<RecordCount> GetRecordCount(HttpClient httpClient, string requestUri)
+        public async Task<RecordCount> GetRecordCountAsync(HttpClient httpClient, string requestUri)
         {
             if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
             if (string.IsNullOrEmpty(requestUri)) throw new ArgumentNullException(nameof(requestUri));
@@ -32,7 +32,7 @@ namespace Bwrx.Api
             return numRecords / maxNumRecordsPerHttpRequest + 1;
         }
 
-        // todo: Guard this
+        // todo: Guard this properly
         public IEnumerable<Tuple<int, int>> CalcPaginationSequence(
             int numHttpRequestsRequired,
             int maxNumRecordsPerHttpRequest)
@@ -41,7 +41,7 @@ namespace Bwrx.Api
             if (maxNumRecordsPerHttpRequest < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxNumRecordsPerHttpRequest));
             var paginationSequences = new List<Tuple<int, int>>();
-            var previousIndex = 1;
+            var previousIndex = 0;
             for (var i = 0; i < numHttpRequestsRequired; i++)
             {
                 var paginationSequence = new Tuple<int, int>(previousIndex, maxNumRecordsPerHttpRequest);
@@ -50,6 +50,35 @@ namespace Bwrx.Api
             }
 
             return paginationSequences;
+        }
+
+        public async Task<IEnumerable<T>> LoadDataAsync<T>(
+            HttpClient httpClient,
+            string requestUri,
+            IEnumerable<Tuple<int, int>> paginationSequence)
+        {
+            if (httpClient == null) throw new ArgumentException(nameof(httpClient));
+            if (string.IsNullOrEmpty(requestUri)) throw new ArgumentNullException(nameof(requestUri));
+            if (paginationSequence == null) throw new ArgumentNullException(nameof(paginationSequence));
+            var dataItems = new List<T>();
+
+            foreach (var sequence in paginationSequence)
+            {
+                var formattedRequestUri = FormatRequestUriForPagination(requestUri, sequence.Item1, sequence.Item2);
+                var httpResponse = await httpClient.GetStringAsync(formattedRequestUri);
+                var payload = JsonConvert.DeserializeObject<IEnumerable<T>>(httpResponse);
+                dataItems.AddRange(payload);
+            }
+
+            return dataItems;
+        }
+
+        public string FormatRequestUriForPagination(string requestUri, int paginationStartIndex, int paginationEndIndex)
+        {
+            if (string.IsNullOrEmpty(requestUri)) throw new ArgumentNullException(nameof(requestUri));
+            if (paginationStartIndex < 0) throw new ArgumentNullException(nameof(paginationStartIndex));
+            if (paginationEndIndex < 0) throw new ArgumentNullException(nameof(paginationEndIndex));
+            return requestUri + "?startPage=" + paginationStartIndex + "&endPage=" + paginationEndIndex;
         }
     }
 
