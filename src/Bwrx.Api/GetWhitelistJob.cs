@@ -13,7 +13,6 @@ namespace Bwrx.Api
             try
             {
                 var dataMap = context.JobDetail.JobDataMap;
-                var bigQueryClient = (BigQueryClient) dataMap[nameof(BigQueryClient)];
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
 
                 var latestWhitelist = await whitelist.GetLatestAsync();
