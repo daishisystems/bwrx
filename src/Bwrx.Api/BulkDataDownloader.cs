@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -16,7 +17,8 @@ namespace Bwrx.Api
             try
             {
                 var httpResponse = await httpClient.GetStringAsync(requestUri);
-                return JsonConvert.DeserializeObject<RecordCount>(httpResponse);
+                var recordCount = JsonConvert.DeserializeObject<RecordCount[]>(httpResponse);
+                return recordCount.First();
             }
             catch (Exception e)
             {
@@ -53,7 +55,7 @@ namespace Bwrx.Api
         }
 
         public async Task<IEnumerable<T>> LoadDataAsync<T>(
-            HttpClient httpClient,
+            HttpClient httpClient, // todo: Increase timeout, increase Cloud Function memory
             string requestUri,
             IEnumerable<Tuple<int, int>> paginationSequence)
         {
