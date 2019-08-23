@@ -19,7 +19,7 @@ namespace Bwrx.Api
                 var latestWhitelist = await whitelist.GetLatestAsync();
                 whitelist.UpDate(latestWhitelist.ToList());
 
-                var latestBlacklist = await blacklist.GetLatestAsync(whitelist.IpAddressIndex);
+                var latestBlacklist = await blacklist.GetLatestAsync(null); // todo: Apply bulk-load feature to blacklist
                 blacklist.UpDate(latestBlacklist);
             }
             catch (Exception exception)

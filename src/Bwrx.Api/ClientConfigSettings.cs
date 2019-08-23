@@ -20,8 +20,9 @@
         public string CloudFunctionHttpBaseAddress { get; set; }
         public string BlacklistUri { get; set; }
         public string WhitelistUri { get; set; }
+        public string WhitelistCountUri { get; set; }
         public string HttpProxy { get; set; }
         public string CloudFunctionRequestUri { get; set; } = string.Empty;
-        public int MaxNumIpAddressesPerHttpRequest { get; set; } = 300000;
+        public int MaxNumIpAddressesPerHttpRequest { get; set; } = 250000;
     }
 }

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Google.Cloud.BigQuery.V2;
-using Newtonsoft.Json;
 
 namespace Bwrx.Api
 {
@@ -15,17 +11,13 @@ namespace Bwrx.Api
         private static readonly Lazy<Whitelist> Lazy = new Lazy<Whitelist>(() => new Whitelist());
 
         private HttpClient _httpClient;
-
-        public Whitelist()
-        {
-            IpAddresses = new ConcurrentBag<IPAddress>();
-            IpAddressIndex = new HashSet<IPAddress>();
-        }
+        private int _maxNumIpAddressesPerHttpRequest;
+        private string _whiteListCountUri;
+        private string _whiteListUri;
 
         public static Whitelist Instance => Lazy.Value;
 
-        public ConcurrentBag<IPAddress> IpAddresses { get; private set; }
-        public HashSet<IPAddress> IpAddressIndex { get; private set; }
+        public HashSet<string> IpAddresses { get; private set; } = new HashSet<string>();
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -62,61 +54,44 @@ namespace Bwrx.Api
                     BaseAddress = new Uri(clientConfigSettings.WhitelistUri)
                 };
             }
+
+            _whiteListCountUri = clientConfigSettings.WhitelistCountUri;
+            _whiteListUri = clientConfigSettings.WhitelistUri;
+            _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
         }
 
-        public bool AddIPAddress(IPAddress ipAddress)
+        public void UpDate(IEnumerable<string> ipAddresses)
         {
-            if (ipAddress == null) throw new ArgumentNullException(nameof(ipAddress));
-
-            try
-            {
-                if (IpAddresses.Contains(ipAddress)) return false;
-                IpAddresses.Add(ipAddress);
-                OnIpAddressAdded(new IpAddressAddedEventArgs(ipAddress));
-                return true;
-            }
-            catch (Exception e)
-            {
-                var exception = new Exception("Failed to add IP address to whitelist.", e);
-                OnAddIpAddressFailed(new AddIpAddressFailedEventArgs(exception, ipAddress));
-                return false;
-            }
-        }
-
-        public void UpDate(List<IPAddress> whiteListedIPAddresses)
-        {
-            IpAddresses = new ConcurrentBag<IPAddress>(whiteListedIPAddresses);
-            IpAddressIndex = new HashSet<IPAddress>(whiteListedIPAddresses);
+            IpAddresses = new HashSet<string>(ipAddresses);
             OnWhitelistUpdated(new EventArgs());
         }
 
-        public async Task<IEnumerable<IPAddress>> GetLatestAsync()
+        public async Task<HashSet<string>> GetLatestAsync()
         {
-            var whiteList = new List<IPAddress>();
             try
             {
-                var httpResponse = await _httpClient.GetStringAsync(string.Empty);
-                var rawIpAddresses =
-                    JsonConvert.DeserializeObject<IEnumerable<ListIpAddress>>(httpResponse);
+                var bulkDataDownloader = new BulkDataDownloader();
+                var recordCount = await bulkDataDownloader.GetRecordCountAsync(_httpClient, _whiteListCountUri);
 
-                foreach (var rawIpAddress in rawIpAddresses)
-                {
-                    var canParse = IPAddress.TryParse(rawIpAddress.IpAddress, out var ipAddress);
+                var numHttpRequestsRequired =
+                    bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);
+                var paginationSequence = bulkDataDownloader.CalcPaginationSequence(
+                    numHttpRequestsRequired,
+                    _maxNumIpAddressesPerHttpRequest);
+                var data = await bulkDataDownloader.LoadDataAsync<IpAddressMeta>(_httpClient, _whiteListUri,
+                    paginationSequence);
 
-                    if (canParse)
-                        whiteList.Add(ipAddress);
-                    else
-                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(rawIpAddress.IpAddress));
-                }
+                var whitelist = new HashSet<string>();
+                foreach (var ipAddressMeta in data) whitelist.Add(ipAddressMeta.IpAddress);
 
-                OnGotLatestWhitelist(new GotLatestListEventArgs(whiteList.Count));
-                return whiteList;
+                OnGotLatestWhitelist(new GotLatestListEventArgs(whitelist.Count));
+                return whitelist;
             }
             catch (Exception exception)
             {
                 const string errorMessage = "Could not get the latest whitelist.";
                 OnGetLatestWhitelistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
-                return whiteList;
+                return new HashSet<string>();
             }
         }
 
