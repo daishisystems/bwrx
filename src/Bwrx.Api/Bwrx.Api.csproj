@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
-    <Version>1.3.9</Version>
+    <Version>1.4.0</Version>
     <Authors>Bwrx</Authors>
     <title>Botworks API</title>
     <Description>High-throughput, low-overhead API designed to monitor and prevent bad actors from accessing your application</Description>
@@ -13,7 +13,7 @@
     <PackageLicenseUrl>https://www.gnu.org/licenses/gpl-3.0.en.html</PackageLicenseUrl>
     <PackageTags>bwrx</PackageTags>
     <RepositoryUrl>https://github.com/daishisystems/bwrx</RepositoryUrl>
-    <PackageReleaseNotes>Added HTTP meta to blacklisted IP-detection event.</PackageReleaseNotes>
+    <PackageReleaseNotes>Applied bulk-load feature to blacklist</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
