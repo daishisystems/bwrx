@@ -12,7 +12,7 @@ namespace Bwrx.Tests.Integration
         public void GetPaginatedResults()
         {
             var bulkDataDownloader = new BulkDataDownloader();
-            const string requestUri = "https://us-central1-bwrx-dev.cloudfunctions.net/function-1";
+            const string requestUri = "https://europe-west2-bwrx-dev.cloudfunctions.net/bwrx-dev-blacklist";
             var paginationSequence = bulkDataDownloader.CalcPaginationSequence(10, 100);
             List<IpAddressMeta> ipAddressMeta;
 

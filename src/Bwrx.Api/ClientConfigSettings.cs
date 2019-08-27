@@ -1,6 +1,6 @@
 ﻿namespace Bwrx.Api
 {
-    public class ClientConfigSettings
+    public class ClientConfigSettings // todo: Create environments * 4
     {
         public string ProjectId { get; set; }
         public string PublisherTopicId { get; set; }
@@ -19,6 +19,7 @@
         public bool UsegRpc { get; set; }
         public string CloudFunctionHttpBaseAddress { get; set; }
         public string BlacklistUri { get; set; }
+        public string BlacklistCountUri { get; set; }
         public string WhitelistUri { get; set; }
         public string WhitelistCountUri { get; set; }
         public string HttpProxy { get; set; }

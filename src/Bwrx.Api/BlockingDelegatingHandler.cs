@@ -66,7 +66,7 @@ namespace Bwrx.Api
             }
 
             var canParseIpAddressHeaders = false;
-            IEnumerable<IPAddress> ipAddresses = null;
+            HashSet<string> ipAddresses = null;
             try
             {
                 canParseIpAddressHeaders = Agent.TryParseIpAddresses(ipAddressHttpHeaderValues, out ipAddresses);
@@ -85,8 +85,6 @@ namespace Bwrx.Api
                 return await base.SendAsync(request, cancellationToken);
             }
 
-            // todo: All IPs are flagged as malicious, including blacklisted IP.
-            // Could cause issues if an IP originates from AWS, RYR ...
             var blacklistedIpAddresses = ipAddresses
                 .Where(ipAddress => Blacklist.Instance.IsIpAddressBlacklisted(ipAddress))
                 .ToList();

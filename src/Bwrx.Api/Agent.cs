@@ -123,7 +123,7 @@ namespace Bwrx.Api
                 Whitelist.Instance,
                 clientConfigSettings).Wait();
 
-            Initialised = true; // todo: Will always be true - errors are swallowed
+            Initialised = true;
         }
 
         public void AddEvent<T>(
@@ -168,29 +168,33 @@ namespace Bwrx.Api
 #if NET461
         public static bool TryParseIpAddresses(
             IEnumerable<string> ipAddressHttpHeaderValues,
-            out IEnumerable<IPAddress> ipAddresses)
+            out HashSet<string> ipAddresses)
         {
-            if (ipAddressHttpHeaderValues != null)
-            {
-                var parsedIpAddresses = new List<IPAddress>();
+            if (ipAddressHttpHeaderValues == null) throw new ArgumentNullException(nameof(ipAddressHttpHeaderValues));
+            ipAddresses = new HashSet<string>();
 
+            try
+            {
                 foreach (var ipAddressHttpHeaderValue in ipAddressHttpHeaderValues)
                 {
                     var rawIpAddresses = ipAddressHttpHeaderValue.Split(',');
 
                     foreach (var rawIpAddress in rawIpAddresses)
                     {
-                        var isIpAddress = IPAddress.TryParse(rawIpAddress.Trim(), out var ipAddress);
-                        if (isIpAddress) parsedIpAddresses.Add(ipAddress);
+                        var isIpAddress = IPAddress.TryParse(rawIpAddress.Trim(), out _);
+                        if (isIpAddress)
+                            ipAddresses.Add(rawIpAddress);
+                        else
+                            throw new Exception(rawIpAddress + " is not a valid IP address.");
                     }
                 }
 
-                ipAddresses = parsedIpAddresses;
-                return parsedIpAddresses.Count > 0;
+                return ipAddresses.Count > 0;
             }
-
-            ipAddresses = new List<IPAddress>();
-            return false;
+            catch (Exception e)
+            {
+                throw new Exception("Could not parse IP addresses.", e);
+            }
         }
 #endif
 

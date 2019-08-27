@@ -54,9 +54,8 @@ namespace Bwrx.Api
                     BaseAddress = new Uri(clientConfigSettings.WhitelistUri)
                 };
             }
-
-            _whiteListCountUri = clientConfigSettings.WhitelistCountUri;
             _whiteListUri = clientConfigSettings.WhitelistUri;
+            _whiteListCountUri = clientConfigSettings.WhitelistCountUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
         }
 
@@ -71,7 +70,9 @@ namespace Bwrx.Api
             try
             {
                 var bulkDataDownloader = new BulkDataDownloader();
-                var recordCount = await bulkDataDownloader.GetRecordCountAsync(_httpClient, _whiteListCountUri);
+                var recordCount =
+                    await bulkDataDownloader.GetRecordCountAsync(_httpClient,
+                        _whiteListCountUri + "?tablename=whitelist");
 
                 var numHttpRequestsRequired =
                     bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);

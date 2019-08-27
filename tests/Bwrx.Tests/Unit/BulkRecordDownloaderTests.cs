@@ -43,7 +43,6 @@ namespace Bwrx.Tests.Unit
             });
         }
 
-        // todo: Test guards
         [Fact]
         public void PaginationSequenceIsCalculated()
         {
@@ -68,7 +67,7 @@ namespace Bwrx.Tests.Unit
             var bulkDataDownloader = new BulkDataDownloader();
             const string requestUri = "http://test.com";
             var formattedRequestUri = bulkDataDownloader.FormatRequestUriForPagination(requestUri, 0, 10);
-            Assert.Equal("http://test.com?startPage=0&endPage=10", formattedRequestUri);
+            Assert.Equal("http://test.com?startpage=0&endpage=10", formattedRequestUri);
         }
     }
 }

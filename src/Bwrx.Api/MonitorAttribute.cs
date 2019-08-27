@@ -68,7 +68,7 @@ namespace Bwrx.Api
             }
 
             bool canParseIpAddressHeaders;
-            IEnumerable<IPAddress> ipAddresses;
+            HashSet<string> ipAddresses;
             try
             {
                 canParseIpAddressHeaders = Agent.TryParseIpAddresses(ipAddressHttpHeaderValues, out ipAddresses);
@@ -105,7 +105,7 @@ namespace Bwrx.Api
             {
                 var rawIpAddresses = ipAddresses != null ? ipAddresses.Select(ip => ip.ToString()) : new List<string>();
                 var queryString = actionContext.Request.GetQueryNameValuePairs();
-
+                
                 EventMetaCache.Instance.Add(EventName, queryString, rawIpAddresses, actionContext.Request.Headers);
                 return result;
             }

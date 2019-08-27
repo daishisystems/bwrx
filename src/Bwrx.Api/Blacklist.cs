@@ -1,30 +1,23 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Google.Cloud.BigQuery.V2;
-using Newtonsoft.Json;
 
 namespace Bwrx.Api
 {
     public class Blacklist
     {
         private static readonly Lazy<Blacklist> Lazy = new Lazy<Blacklist>(() => new Blacklist());
-
-        public Blacklist()
-        {
-            IpAddresses = new ConcurrentBag<IPAddress>();
-        }
+        private string _blacklistUri;
+        private string _blacklistCountUri;
 
         private HttpClient _httpClient;
+        private int _maxNumIpAddressesPerHttpRequest;
 
         public static Blacklist Instance => Lazy.Value;
 
-        public ConcurrentBag<IPAddress> IpAddresses { get; private set; }
+        public HashSet<string> IpAddresses { get; private set; } = new HashSet<string>();
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -61,67 +54,46 @@ namespace Bwrx.Api
                     BaseAddress = new Uri(clientConfigSettings.BlacklistUri)
                 };
             }
-        }
-        
-        // todo: Use O(1) collection
-        // todo: Flatten to IP ranges collection
-        public bool IsIpAddressBlacklisted(IPAddress ipAddressToFind)
-        {
-            return IpAddresses.Contains(ipAddressToFind);
+            _blacklistUri = clientConfigSettings.BlacklistUri;
+            _blacklistCountUri = clientConfigSettings.BlacklistCountUri;
+            _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
         }
 
-        public bool AddIPAddress(
-            IPAddress ipAddress,
-            IEnumerable<IPAddress> whitelistedIPAddresses = null)
+        public bool IsIpAddressBlacklisted(string ipAddress)
         {
-            if (ipAddress == null) throw new ArgumentNullException(nameof(ipAddress));
-
-            try
-            {
-                if (whitelistedIPAddresses != null && whitelistedIPAddresses.Contains(ipAddress)) return false;
-                if (IpAddresses.Contains(ipAddress)) return false;
-                IpAddresses.Add(ipAddress);
-                OnIpAddressAdded(new IpAddressAddedEventArgs(ipAddress));
-                return true;
-            }
-            catch (Exception e)
-            {
-                var exception = new Exception("Failed to add IP address to blacklist.", e);
-                OnAddIpAddressFailed(new AddIpAddressFailedEventArgs(exception, ipAddress));
-                return false;
-            }
+            return IpAddresses.Contains(ipAddress);
         }
 
-        public void UpDate(IEnumerable<IPAddress> blacklistedIPAddresses)
+        public void UpDate(IEnumerable<string> blacklistedIPAddresses)
         {
-            IpAddresses = new ConcurrentBag<IPAddress>(blacklistedIPAddresses);
+            IpAddresses = new HashSet<string>(blacklistedIPAddresses);
             OnBlacklistUpdated(new EventArgs());
         }
 
-        public async Task<IEnumerable<IPAddress>> GetLatestAsync(
-            HashSet<IPAddress> whitelistedIpAddresses)
+        public async Task<HashSet<string>> GetLatestAsync(
+            HashSet<string> whitelistedIpAddresses)
         {
             if (whitelistedIpAddresses == null) throw new ArgumentNullException(nameof(whitelistedIpAddresses));
 
-            var blacklist = new List<IPAddress>();
             try
             {
-                var httpResponse = await _httpClient.GetStringAsync(string.Empty);
-                var rawIpAddresses =
-                    JsonConvert.DeserializeObject<IEnumerable<ListIpAddress>>(httpResponse);
+                var bulkDataDownloader = new BulkDataDownloader();
+                var recordCount =
+                    await bulkDataDownloader.GetRecordCountAsync(_httpClient,
+                        _blacklistCountUri + "?tablename=blacklist");
 
-                var ipAddresses = new List<IPAddress>();
-                foreach (var rawIpAddress in rawIpAddresses)
-                {
-                    var canParse = IPAddress.TryParse(rawIpAddress.IpAddress, out var ipAddress);
+                var numHttpRequestsRequired =
+                    bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);
+                var paginationSequence = bulkDataDownloader.CalcPaginationSequence(
+                    numHttpRequestsRequired,
+                    _maxNumIpAddressesPerHttpRequest);
+                var data = await bulkDataDownloader.LoadDataAsync<IpAddressMeta>(_httpClient, _blacklistUri,
+                    paginationSequence);
 
-                    if (canParse)
-                        ipAddresses.Add(ipAddress);
-                    else
-                        OnCouldNotParseIpAddress(new CouldNotParseIpAddressEventArgs(rawIpAddress.IpAddress));
-                }
-
-                blacklist.AddRange(ipAddresses.Where(ipAddress => !whitelistedIpAddresses.Contains(ipAddress)));
+                var blacklist = new HashSet<string>();
+                foreach (var ipAddressMeta in data)
+                    if (!whitelistedIpAddresses.Contains(ipAddressMeta.IpAddress))
+                        blacklist.Add(ipAddressMeta.IpAddress);
 
                 OnGotLatestBlacklist(new GotLatestListEventArgs(blacklist.Count));
                 return blacklist;
@@ -130,7 +102,7 @@ namespace Bwrx.Api
             {
                 const string errorMessage = "Could not get the latest blacklist.";
                 OnGetBlacklistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
-                return blacklist;
+                return new HashSet<string>();
             }
         }
 

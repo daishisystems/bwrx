@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Cloud.BigQuery.V2;
 using Quartz;
 
 namespace Bwrx.Api
 {
+    [DisallowConcurrentExecution]
     internal class GetWhitelistJob : IJob
     {
         public async Task Execute(IJobExecutionContext context)

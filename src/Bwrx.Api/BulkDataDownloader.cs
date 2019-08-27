@@ -34,7 +34,6 @@ namespace Bwrx.Api
             return numRecords / maxNumRecordsPerHttpRequest + 1;
         }
 
-        // todo: Guard this properly
         public IEnumerable<Tuple<int, int>> CalcPaginationSequence(
             int numHttpRequestsRequired,
             int maxNumRecordsPerHttpRequest)
@@ -55,7 +54,7 @@ namespace Bwrx.Api
         }
 
         public async Task<IEnumerable<T>> LoadDataAsync<T>(
-            HttpClient httpClient, // todo: Increase timeout, increase Cloud Function memory
+            HttpClient httpClient,
             string requestUri,
             IEnumerable<Tuple<int, int>> paginationSequence)
         {
@@ -80,7 +79,7 @@ namespace Bwrx.Api
             if (string.IsNullOrEmpty(requestUri)) throw new ArgumentNullException(nameof(requestUri));
             if (paginationStartIndex < 0) throw new ArgumentNullException(nameof(paginationStartIndex));
             if (paginationEndIndex < 0) throw new ArgumentNullException(nameof(paginationEndIndex));
-            return requestUri + "?startPage=" + paginationStartIndex + "&endPage=" + paginationEndIndex;
+            return requestUri + "?startpage=" + paginationStartIndex + "&endpage=" + paginationEndIndex;
         }
     }
 

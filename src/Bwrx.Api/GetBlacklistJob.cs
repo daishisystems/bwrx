@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Cloud.BigQuery.V2;
 using Quartz;
 
 namespace Bwrx.Api
 {
+    [DisallowConcurrentExecution]
     internal class GetBlacklistJob : IJob
     {
         public async Task Execute(IJobExecutionContext context)
@@ -19,8 +19,8 @@ namespace Bwrx.Api
                 var latestWhitelist = await whitelist.GetLatestAsync();
                 whitelist.UpDate(latestWhitelist.ToList());
 
-                var latestBlacklist = await blacklist.GetLatestAsync(null); // todo: Apply bulk-load feature to blacklist
-                blacklist.UpDate(latestBlacklist);
+                var latestBlacklist = await blacklist.GetLatestAsync(whitelist.IpAddresses);
+                blacklist.UpDate(latestBlacklist); // todo: Allow IP ranges
             }
             catch (Exception exception)
             {
