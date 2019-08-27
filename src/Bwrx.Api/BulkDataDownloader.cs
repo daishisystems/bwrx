@@ -28,7 +28,7 @@ namespace Bwrx.Api
 
         public int CalcNumHttpRequestsRequired(int numRecords, int maxNumRecordsPerHttpRequest)
         {
-            if (numRecords <= 0) throw new ArgumentOutOfRangeException(nameof(numRecords));
+            if (numRecords < 0) throw new ArgumentOutOfRangeException(nameof(numRecords));
             if (maxNumRecordsPerHttpRequest <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxNumRecordsPerHttpRequest));
             return numRecords / maxNumRecordsPerHttpRequest + 1;
