@@ -1,6 +1,6 @@
 ﻿namespace Bwrx.Api
 {
-    public class ClientConfigSettings // todo: Create environments * 4
+    public class ClientConfigSettings
     {
         public string ProjectId { get; set; }
         public string PublisherTopicId { get; set; }

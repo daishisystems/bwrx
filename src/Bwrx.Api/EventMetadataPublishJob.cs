@@ -22,7 +22,7 @@ namespace Bwrx.Api
                 else
                     await eventTransmissionClient.TransmitOverHttpAsync(
                         eventMetadataPayloadBatch,
-                        clientConfigSettings.CloudFunctionRequestUri); // todo: Parse types from the payload and redirect appropriately ...
+                        clientConfigSettings.CloudFunctionRequestUri);
             }
             catch (Exception exception)
             {

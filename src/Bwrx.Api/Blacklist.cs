@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using NetTools;
 
 namespace Bwrx.Api
 {
@@ -18,6 +20,8 @@ namespace Bwrx.Api
         public static Blacklist Instance => Lazy.Value;
 
         public HashSet<string> IpAddresses { get; private set; } = new HashSet<string>();
+
+        public IEnumerable<IPAddressRange> IpAddressRanges { get; set; }
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -104,6 +108,45 @@ namespace Bwrx.Api
                 OnGetBlacklistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
                 return new HashSet<string>();
             }
+        }
+
+        public bool IpAddressIsInRange(string ipAddress, string ipAddressRange)
+        {
+            if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
+            if (string.IsNullOrEmpty(ipAddressRange)) throw new ArgumentNullException(nameof(ipAddressRange));
+
+            var canParseIpAddress = IPAddress.TryParse(ipAddress, out var ip);
+            if (!canParseIpAddress) throw new Exception("Could not parse IP address '" + ipAddress + "'");
+
+            var canParseIpAddressRange = IPAddressRange.TryParse(ipAddressRange, out var ipRange);
+            if (canParseIpAddressRange)
+                return ipRange.Contains(ip);
+            throw new Exception("Could not parse IP address range '" + ipAddressRange + "'");
+        }
+
+        // todo: Consider adding notification events
+        public bool IpAddressIsInRanges(string ipAddress, List<string> ipAddressRanges, out int ipRangeIndex)
+        {
+            if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
+            if (ipAddressRanges == null) throw new ArgumentNullException(nameof(ipAddressRanges));
+
+            if (!ipAddressRanges.Any())
+            {
+                ipRangeIndex = 0;
+                return false;
+            }
+
+            var isInRange = false;
+            var counter = 0;
+            do
+            {
+                var ipRange = ipAddressRanges[counter];
+                if (IpAddressIsInRange(ipAddress, ipRange)) isInRange = true;
+                counter++;
+            } while (!isInRange && counter < ipAddressRanges.Count);
+
+            ipRangeIndex = counter - 1;
+            return isInRange;
         }
 
         private void OnIpAddressAdded(IpAddressAddedEventArgs e)

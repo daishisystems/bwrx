@@ -29,7 +29,7 @@ namespace Bwrx.Tests.Unit
             var bulkDataDownloader = new BulkDataDownloader();
             Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
-                bulkDataDownloader.CalcNumHttpRequestsRequired(0, 20);
+                bulkDataDownloader.CalcNumHttpRequestsRequired(-1, 20);
             });
         }
 
