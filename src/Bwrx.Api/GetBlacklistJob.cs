@@ -17,10 +17,10 @@ namespace Bwrx.Api
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
 
                 var latestWhitelist = await whitelist.GetLatestAsync();
-                whitelist.UpDate(latestWhitelist.ToList());
-
-                var latestBlacklist = await blacklist.GetLatestAsync(whitelist.IpAddresses);
-                blacklist.UpDate(latestBlacklist); // todo: Allow IP ranges
+                whitelist.UpDate(latestWhitelist);
+                var latestBlacklist = await blacklist.GetLatestIndividualAsync();
+                var blacklistRanges = await blacklist.GetLatestRangesAsync();
+                blacklist.UpDate(latestBlacklist, blacklistRanges);
             }
             catch (Exception exception)
             {

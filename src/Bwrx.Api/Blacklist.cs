@@ -11,8 +11,9 @@ namespace Bwrx.Api
     public class Blacklist
     {
         private static readonly Lazy<Blacklist> Lazy = new Lazy<Blacklist>(() => new Blacklist());
-        private string _blacklistUri;
         private string _blacklistCountUri;
+        private string _blacklistUri;
+        private string _blacklistRangesUri;
 
         private HttpClient _httpClient;
         private int _maxNumIpAddressesPerHttpRequest;
@@ -21,7 +22,7 @@ namespace Bwrx.Api
 
         public HashSet<string> IpAddresses { get; private set; } = new HashSet<string>();
 
-        public IEnumerable<IPAddressRange> IpAddressRanges { get; set; }
+        public List<string> IpAddressRanges { get; set; } = new List<string>();
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -58,27 +59,30 @@ namespace Bwrx.Api
                     BaseAddress = new Uri(clientConfigSettings.BlacklistUri)
                 };
             }
+
             _blacklistUri = clientConfigSettings.BlacklistUri;
             _blacklistCountUri = clientConfigSettings.BlacklistCountUri;
+            _blacklistRangesUri = clientConfigSettings.BlacklistRangesUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
         }
 
         public bool IsIpAddressBlacklisted(string ipAddress)
         {
-            return IpAddresses.Contains(ipAddress);
+            // todo: Use Enum to identify black|whitelisted, range-listed ip addresses and publish handler event
+            if (Whitelist.Instance.IpAddresses.Contains(ipAddress))
+                return false;
+            return IpAddresses.Contains(ipAddress) || IpAddressIsInRanges(ipAddress, IpAddressRanges, out _);
         }
 
-        public void UpDate(IEnumerable<string> blacklistedIPAddresses)
+        public void UpDate(IEnumerable<string> ipAddresses, IEnumerable<string> ipAddressRanges)
         {
-            IpAddresses = new HashSet<string>(blacklistedIPAddresses);
+            IpAddresses = new HashSet<string>(ipAddresses);
+            IpAddressRanges = new List<string>(ipAddressRanges);
             OnBlacklistUpdated(new EventArgs());
         }
 
-        public async Task<HashSet<string>> GetLatestAsync(
-            HashSet<string> whitelistedIpAddresses)
+        public async Task<HashSet<string>> GetLatestIndividualAsync()
         {
-            if (whitelistedIpAddresses == null) throw new ArgumentNullException(nameof(whitelistedIpAddresses));
-
             try
             {
                 var bulkDataDownloader = new BulkDataDownloader();
@@ -95,9 +99,7 @@ namespace Bwrx.Api
                     paginationSequence);
 
                 var blacklist = new HashSet<string>();
-                foreach (var ipAddressMeta in data)
-                    if (!whitelistedIpAddresses.Contains(ipAddressMeta.IpAddress))
-                        blacklist.Add(ipAddressMeta.IpAddress);
+                foreach (var ipAddressMeta in data) blacklist.Add(ipAddressMeta.IpAddress);
 
                 OnGotLatestBlacklist(new GotLatestListEventArgs(blacklist.Count));
                 return blacklist;
@@ -107,6 +109,35 @@ namespace Bwrx.Api
                 const string errorMessage = "Could not get the latest blacklist.";
                 OnGetBlacklistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
                 return new HashSet<string>();
+            }
+        }
+
+        public async Task<List<string>> GetLatestRangesAsync()
+        {
+            try
+            {
+                var bulkDataDownloader = new BulkDataDownloader();
+                var recordCount =
+                    await bulkDataDownloader.GetRecordCountAsync(_httpClient,
+                        _blacklistCountUri + "?tablename=blacklistranges");
+
+                var numHttpRequestsRequired =
+                    bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);
+                var paginationSequence = bulkDataDownloader.CalcPaginationSequence(
+                    numHttpRequestsRequired,
+                    _maxNumIpAddressesPerHttpRequest);
+                var data = await bulkDataDownloader.LoadDataAsync<IpAddressRangeMeta>(_httpClient, _blacklistRangesUri,
+                    paginationSequence);
+
+                var blacklistranges = data.Select(ipAddressMeta => ipAddressMeta.IpAddressRange).ToList();
+                OnGotLatestBlacklist(new GotLatestListEventArgs(blacklistranges.Count));
+                return blacklistranges;
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "Could not get the latest blacklist ranges.";
+                OnGetBlacklistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
+                return new List<string>();
             }
         }
 
@@ -124,7 +155,7 @@ namespace Bwrx.Api
             throw new Exception("Could not parse IP address range '" + ipAddressRange + "'");
         }
 
-        // todo: Consider adding notification events
+        // todo: Add notification events
         public bool IpAddressIsInRanges(string ipAddress, List<string> ipAddressRanges, out int ipRangeIndex)
         {
             if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
