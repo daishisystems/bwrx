@@ -160,7 +160,7 @@ namespace Bwrx.Api
                     jArray.Add(jToken);
                 }
 
-                await _httpClient.PostAsync(requestUri,
+                await _httpClient.PostAsync(requestUri, // todo: throw error if response code != 200
                     new StringContent(jArray.ToString(), Encoding.UTF8, "application/json"));
 
                 OnDataTransmitted(new EventTransmittedEventArgs(eventMeta.Count));

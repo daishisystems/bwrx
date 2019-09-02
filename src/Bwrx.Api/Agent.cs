@@ -177,11 +177,10 @@ namespace Bwrx.Api
             {
                 foreach (var ipAddressHttpHeaderValue in ipAddressHttpHeaderValues)
                 {
-                    var rawIpAddresses = ipAddressHttpHeaderValue.Split(',');
-
+                    var rawIpAddresses = ipAddressHttpHeaderValue.Split(',').Select(ip => ip.Trim());
                     foreach (var rawIpAddress in rawIpAddresses)
                     {
-                        var isIpAddress = IPAddress.TryParse(rawIpAddress.Trim(), out _);
+                        var isIpAddress = IPAddress.TryParse(rawIpAddress, out _);
                         if (isIpAddress)
                             ipAddresses.Add(rawIpAddress);
                         else

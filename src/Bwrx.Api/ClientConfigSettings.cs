@@ -20,7 +20,7 @@
         public string CloudFunctionHttpBaseAddress { get; set; }
         public string BlacklistUri { get; set; }
         public string BlacklistCountUri { get; set; }
-        public string BlacklistRangesUri { get; set; } // todo: Update config files with this value
+        public string BlacklistRangesUri { get; set; }
         public string WhitelistUri { get; set; }
         public string WhitelistCountUri { get; set; }
         public string HttpProxy { get; set; }
