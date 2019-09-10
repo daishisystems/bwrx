@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Quartz;
 
@@ -15,8 +14,9 @@ namespace Bwrx.Api
                 var dataMap = context.JobDetail.JobDataMap;
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
 
-                var latestWhitelist = await whitelist.GetLatestAsync();
-                whitelist.UpDate(latestWhitelist.ToList());
+                var latestWhitelist = await whitelist.GetLatestIndividualAsync();
+                var whitelistRanges = await whitelist.GetLatestRangesAsync();
+                whitelist.UpDate(latestWhitelist, whitelistRanges);
             }
             catch (Exception exception)
             {

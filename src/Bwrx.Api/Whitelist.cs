@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,12 +13,15 @@ namespace Bwrx.Api
 
         private HttpClient _httpClient;
         private int _maxNumIpAddressesPerHttpRequest;
+
         private string _whiteListCountUri;
+        private string _whitelistRangesUri;
         private string _whiteListUri;
 
         public static Whitelist Instance => Lazy.Value;
 
         public HashSet<string> IpAddresses { get; private set; } = new HashSet<string>();
+        public List<string> IpAddressRanges { get; set; } = new List<string>();
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -54,18 +58,21 @@ namespace Bwrx.Api
                     BaseAddress = new Uri(clientConfigSettings.WhitelistUri)
                 };
             }
+
             _whiteListUri = clientConfigSettings.WhitelistUri;
             _whiteListCountUri = clientConfigSettings.WhitelistCountUri;
+            _whitelistRangesUri = clientConfigSettings.WhitelistRangesUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
         }
 
-        public void UpDate(IEnumerable<string> ipAddresses)
+        public void UpDate(IEnumerable<string> ipAddresses, IEnumerable<string> ipAddressRanges)
         {
             IpAddresses = new HashSet<string>(ipAddresses);
+            IpAddressRanges = new List<string>(ipAddressRanges);
             OnWhitelistUpdated(new EventArgs());
         }
 
-        public async Task<HashSet<string>> GetLatestAsync()
+        public async Task<HashSet<string>> GetLatestIndividualAsync()
         {
             try
             {
@@ -93,6 +100,35 @@ namespace Bwrx.Api
                 const string errorMessage = "Could not get the latest whitelist.";
                 OnGetLatestWhitelistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
                 return new HashSet<string>();
+            }
+        }
+
+        public async Task<List<string>> GetLatestRangesAsync()
+        {
+            try
+            {
+                var bulkDataDownloader = new BulkDataDownloader();
+                var recordCount =
+                    await bulkDataDownloader.GetRecordCountAsync(_httpClient,
+                        _whiteListCountUri + "?tablename=whitelistranges");
+
+                var numHttpRequestsRequired =
+                    bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);
+                var paginationSequence = bulkDataDownloader.CalcPaginationSequence(
+                    numHttpRequestsRequired,
+                    _maxNumIpAddressesPerHttpRequest);
+                var data = await bulkDataDownloader.LoadDataAsync<IpAddressRangeMeta>(_httpClient, _whitelistRangesUri,
+                    paginationSequence);
+
+                var whitelistranges = data.Select(ipAddressMeta => ipAddressMeta.IpAddressRange).ToList();
+                OnGotLatestWhitelist(new GotLatestListEventArgs(whitelistranges.Count));
+                return whitelistranges;
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "Could not get the latest whitelist ranges.";
+                OnGetLatestWhitelistFailed(new GetLatestListFailedEventArgs(new Exception(errorMessage, exception)));
+                return new List<string>();
             }
         }
 

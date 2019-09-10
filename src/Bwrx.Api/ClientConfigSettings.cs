@@ -23,6 +23,7 @@
         public string BlacklistRangesUri { get; set; }
         public string WhitelistUri { get; set; }
         public string WhitelistCountUri { get; set; }
+        public string WhitelistRangesUri { get; set; }
         public string HttpProxy { get; set; }
         public string CloudFunctionRequestUri { get; set; } = string.Empty;
         public int MaxNumIpAddressesPerHttpRequest { get; set; } = 250000;

@@ -12,8 +12,8 @@ namespace Bwrx.Api
     {
         private static readonly Lazy<Blacklist> Lazy = new Lazy<Blacklist>(() => new Blacklist());
         private string _blacklistCountUri;
-        private string _blacklistUri;
         private string _blacklistRangesUri;
+        private string _blacklistUri;
 
         private HttpClient _httpClient;
         private int _maxNumIpAddressesPerHttpRequest;
@@ -69,8 +69,8 @@ namespace Bwrx.Api
         public bool IsIpAddressBlacklisted(string ipAddress)
         {
             // todo: Use Enum to identify black|whitelisted, range-listed ip addresses and publish handler event
-            if (Whitelist.Instance.IpAddresses.Contains(ipAddress))
-                return false;
+            if (IpAddressIsInRanges(ipAddress, Whitelist.Instance.IpAddressRanges, out _)) return false;
+            if (Whitelist.Instance.IpAddresses.Contains(ipAddress)) return false;
             return IpAddresses.Contains(ipAddress) || IpAddressIsInRanges(ipAddress, IpAddressRanges, out _);
         }
 

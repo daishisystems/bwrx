@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Quartz;
 
@@ -16,8 +15,9 @@ namespace Bwrx.Api
                 var blacklist = (Blacklist) dataMap[nameof(Blacklist)];
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
 
-                var latestWhitelist = await whitelist.GetLatestAsync();
-                whitelist.UpDate(latestWhitelist);
+                var latestWhitelist = await whitelist.GetLatestIndividualAsync();
+                var whitelistRanges = await whitelist.GetLatestRangesAsync();
+                whitelist.UpDate(latestWhitelist, whitelistRanges);
                 var latestBlacklist = await blacklist.GetLatestIndividualAsync();
                 var blacklistRanges = await blacklist.GetLatestRangesAsync();
                 blacklist.UpDate(latestBlacklist, blacklistRanges);
