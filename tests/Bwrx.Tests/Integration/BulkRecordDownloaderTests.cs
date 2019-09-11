@@ -22,7 +22,7 @@ namespace Bwrx.Tests.Integration
                     .LoadDataAsync<IpAddressMeta>(httpClient, requestUri, paginationSequence).Result.ToList();
             }
 
-            Assert.Equal(1000, ipAddressMeta.Count);
+            Assert.Empty(ipAddressMeta);
         }
 
         [Fact]

@@ -89,6 +89,7 @@ namespace Bwrx.Api
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
                         _blacklistCountUri + "?tablename=blacklist");
+                if (recordCount.Total == 0) return new HashSet<string>();
 
                 var numHttpRequestsRequired =
                     bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);
@@ -120,6 +121,7 @@ namespace Bwrx.Api
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
                         _blacklistCountUri + "?tablename=blacklistranges");
+                if (recordCount.Total == 0) return new List<string>();
 
                 var numHttpRequestsRequired =
                     bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);

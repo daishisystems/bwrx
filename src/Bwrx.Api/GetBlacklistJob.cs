@@ -14,7 +14,7 @@ namespace Bwrx.Api
                 var dataMap = context.JobDetail.JobDataMap;
                 var blacklist = (Blacklist) dataMap[nameof(Blacklist)];
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
-
+                // todo: GZIP encoding: https://bit.ly/2kEP8vV
                 var latestWhitelist = await whitelist.GetLatestIndividualAsync();
                 var whitelistRanges = await whitelist.GetLatestRangesAsync();
                 whitelist.UpDate(latestWhitelist, whitelistRanges);

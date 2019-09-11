@@ -72,6 +72,7 @@ namespace Bwrx.Api
             OnWhitelistUpdated(new EventArgs());
         }
 
+        // todo: Load CloudFront IP addresses
         public async Task<HashSet<string>> GetLatestIndividualAsync()
         {
             try
@@ -79,7 +80,9 @@ namespace Bwrx.Api
                 var bulkDataDownloader = new BulkDataDownloader();
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
-                        _whiteListCountUri + "?tablename=whitelist");
+                        _whiteListCountUri +
+                        "?tablename=whitelist"); // todo: Use same function to get all data and reuse connection
+                if (recordCount.Total == 0) return new HashSet<string>();
 
                 var numHttpRequestsRequired =
                     bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);
@@ -111,6 +114,7 @@ namespace Bwrx.Api
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
                         _whiteListCountUri + "?tablename=whitelistranges");
+                if (recordCount.Total == 0) return new List<string>();
 
                 var numHttpRequestsRequired =
                     bulkDataDownloader.CalcNumHttpRequestsRequired(recordCount.Total, _maxNumIpAddressesPerHttpRequest);

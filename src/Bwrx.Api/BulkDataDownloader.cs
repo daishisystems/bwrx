@@ -52,7 +52,7 @@ namespace Bwrx.Api
 
             return paginationSequences;
         }
-
+        // todo: Allow partial download during failure, notify on failure
         public async Task<IEnumerable<T>> LoadDataAsync<T>(
             HttpClient httpClient,
             string requestUri,
