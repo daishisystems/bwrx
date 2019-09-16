@@ -128,6 +128,7 @@ namespace Bwrx.Api
                 KeyMatcher<JobKey>.KeyEquals(new JobKey(blacklistJobName)));
 
             _getBlacklistJobTrigger = TriggerBuilder.Create()
+                .StartNow()
                 .WithSimpleSchedule(s => s
                     .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetBlacklistTimeInterval)
                     .RepeatForever())
