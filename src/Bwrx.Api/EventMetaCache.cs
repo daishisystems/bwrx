@@ -15,6 +15,7 @@ namespace Bwrx.Api
             new Lazy<EventMetaCache>(() => new EventMetaCache());
 
         private ConcurrentQueue<string> _cache;
+        private volatile bool _initialised;
 
         public EventMetaCache()
         {
@@ -29,6 +30,11 @@ namespace Bwrx.Api
 
         public int MaxItemsToDequeue { get; set; } = 2250;
 
+        public bool Initialised
+        {
+            set => _initialised = value;
+        }
+
         public event EventHandlers.EventMetaAddedEventHandler EventMetaAdded;
         public event EventHandlers.AddEventMetaFailedEventHandler AddEventMetaFailed;
         public event EventHandlers.GetEventMetadataPayloadBatchFailedEventHandler GetEventMetadataPayloadBatchFailed;
@@ -41,6 +47,7 @@ namespace Bwrx.Api
             string queryString = null,
             Dictionary<string, string> httpHeaders = null)
         {
+            if (!_initialised) return;
             if (eventMetadataPayload == null)
                 throw new ArgumentNullException(nameof(eventMetadataPayload));
             if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
@@ -94,6 +101,7 @@ namespace Bwrx.Api
             IEnumerable<string> ipAddresses,
             HttpRequestHeaders httpRequestHeaders)
         {
+            if(!_initialised) return;
             if (string.IsNullOrEmpty(eventName)) throw new ArgumentNullException(nameof(eventName));
             if (queryString == null) throw new ArgumentNullException(nameof(queryString));
             if (ipAddresses == null) throw new ArgumentNullException(nameof(ipAddresses));
@@ -192,27 +200,27 @@ namespace Bwrx.Api
             }
         }
 
-        protected virtual void OnEventMetaAdded(EventMetaAddedEventArgs e)
+        private void OnEventMetaAdded(EventMetaAddedEventArgs e)
         {
             EventMetaAdded?.Invoke(this, e);
         }
 
-        protected virtual void OnAddEventMetaFailed(AddEventMetaFailedEventArgs e)
+        private void OnAddEventMetaFailed(AddEventMetaFailedEventArgs e)
         {
             AddEventMetaFailed?.Invoke(this, e);
         }
 
-        protected virtual void OnGetEventMetadataPayloadBatchFailed(GetEventMetadataPayloadBatchFailedEventArgs e)
+        private void OnGetEventMetadataPayloadBatchFailed(GetEventMetadataPayloadBatchFailedEventArgs e)
         {
             GetEventMetadataPayloadBatchFailed?.Invoke(this, e);
         }
 
-        protected virtual void OnGotEventMetadataPayloadBatch(GetEventMetadataPayloadBatchEventArgs e)
+        private void OnGotEventMetadataPayloadBatch(GetEventMetadataPayloadBatchEventArgs e)
         {
             GotEventMetadataPayloadBatch?.Invoke(this, e);
         }
 
-        protected virtual void OnClearCacheFailed(ClearCacheFailedEventArgs e)
+        private void OnClearCacheFailed(ClearCacheFailedEventArgs e)
         {
             ClearCacheFailed?.Invoke(this, e);
         }

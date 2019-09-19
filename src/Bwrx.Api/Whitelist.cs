@@ -12,6 +12,7 @@ namespace Bwrx.Api
         private static readonly Lazy<Whitelist> Lazy = new Lazy<Whitelist>(() => new Whitelist());
 
         private HttpClient _httpClient;
+        private volatile bool _initialised;
         private int _maxNumIpAddressesPerHttpRequest;
 
         private string _whiteListCountUri;
@@ -37,6 +38,7 @@ namespace Bwrx.Api
 
         public void Init(ClientConfigSettings clientConfigSettings)
         {
+            if (_initialised) return;
             if (clientConfigSettings == null) throw new ArgumentNullException(nameof(clientConfigSettings));
 
             if (!string.IsNullOrEmpty(clientConfigSettings.HttpProxy))
@@ -63,6 +65,7 @@ namespace Bwrx.Api
             _whiteListCountUri = clientConfigSettings.WhitelistCountUri;
             _whitelistRangesUri = clientConfigSettings.WhitelistRangesUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
+            _initialised = true;
         }
 
         public void UpDate(IEnumerable<string> ipAddresses, IEnumerable<string> ipAddressRanges)
@@ -72,7 +75,6 @@ namespace Bwrx.Api
             OnWhitelistUpdated(new EventArgs());
         }
 
-        // todo: Load CloudFront IP addresses
         public async Task<HashSet<string>> GetLatestIndividualAsync()
         {
             try
@@ -81,7 +83,7 @@ namespace Bwrx.Api
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
                         _whiteListCountUri +
-                        "?tablename=whitelist"); // todo: Use same function to get all data and reuse connection
+                        "?tablename=whitelist");
                 if (recordCount.Total == 0) return new HashSet<string>();
 
                 var numHttpRequestsRequired =

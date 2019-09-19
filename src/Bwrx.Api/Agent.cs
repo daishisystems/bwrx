@@ -26,13 +26,19 @@ namespace Bwrx.Api
         private static readonly Lazy<Agent> Lazy =
             new Lazy<Agent>(() => new Agent());
 
+        private volatile bool _initialised;
+
         public event EventHandlers.CloudDatabaseConnectionFailedEventHandler CloudDatabaseConnectionFailed;
 
         public static Agent Instance => Lazy.Value;
 
         public ClientConfigSettings ClientConfigSettings { get; private set; }
 
-        public bool Initialised { get; set; }
+        public bool Initialised
+        {
+            get => _initialised;
+            private set => _initialised = value;
+        }
 
         public bool HandlerIsInitialised { get; set; }
 
@@ -47,6 +53,7 @@ namespace Bwrx.Api
         public event EventHandlers.DataTransmittedEventHandler DataTransmitted;
 
         public event JobScheduler.JobSchedulerStartFailedEventHandler JobSchedulerStartFailed;
+        public event JobScheduler.JobSchedulerShutdownFailedEventHandler JobSchedulerShutdownFailed;
         public event EventMetadataPublishJobExecutionFailedEventHandler EventMetadataPublishJobExecutionFailed;
         public event GetBlacklistJobExecutionFailedEventHandler GetBlacklistJobExecutionFailed;
         public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
@@ -75,6 +82,7 @@ namespace Bwrx.Api
             CloudServiceCredentials cloudServiceCredentials,
             ClientConfigSettings clientConfigSettings)
         {
+            if (Initialised) return;
             EventMetaCache.Instance.EventMetaAdded += EventMetaAdded;
             EventMetaCache.Instance.AddEventMetaFailed += AddEventMetaFailed;
             EventMetaCache.Instance.GetEventMetadataPayloadBatchFailed += GetEventMetadataPayloadBatchFailed;
@@ -86,6 +94,7 @@ namespace Bwrx.Api
             EventTransmissionClient.Instance.DataTransmitted += DataTransmitted;
 
             JobScheduler.Instance.JobSchedulerStartFailed += JobSchedulerStartFailed;
+            JobScheduler.Instance.JobSchedulerShutdownFailed += JobSchedulerShutdownFailed;
             JobScheduler.Instance.EventMetadataPublishJobExecutionFailed += EventMetadataPublishJobExecutionFailed;
             JobScheduler.Instance.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
             JobScheduler.Instance.GetWhitelistJobExecutionFailed += GetWhitelistJobExecutionFailed;
@@ -106,12 +115,11 @@ namespace Bwrx.Api
 
             ClientConfigSettings = clientConfigSettings;
 
+            EventMetaCache.Instance.Initialised = true;
             EventTransmissionClient.Instance.InitAsync(
                 cloudServiceCredentials,
                 clientConfigSettings
             ).Wait();
-
-            if (!EventTransmissionClient.Instance.Initialised) return;
 
             Blacklist.Instance.Init(clientConfigSettings);
             Whitelist.Instance.Init(clientConfigSettings);
@@ -123,7 +131,23 @@ namespace Bwrx.Api
                 Whitelist.Instance,
                 clientConfigSettings).Wait();
 
-            Initialised = true;
+            _initialised = true;
+        }
+
+        public void Shutdown()
+        {
+            if (!Initialised) return;
+            try
+            {
+                JobScheduler.Instance.Shutdown();
+                EventMetaCache.Instance.Initialised = false;
+                EventMetaCache.Instance.Clear();
+                Initialised = false;
+            }
+            catch (Exception)
+            {
+                // Ignore - exceptions are already handled in each call above
+            }
         }
 
         public void AddEvent<T>(

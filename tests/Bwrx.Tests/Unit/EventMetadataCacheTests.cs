@@ -11,7 +11,7 @@ namespace Bwrx.Tests.Unit
         [Fact]
         public void AllEventMetadataPayloadsAreDequeued()
         {
-            var eventMetadataCache = new EventMetaCache();
+            var eventMetadataCache = new EventMetaCache {Initialised = true};
             var httpHeaders = new Dictionary<string, string>
                 {{"User-Agent", "USERAGENT"}, {"Content-Type", "CONTENT"}};
 
@@ -34,8 +34,7 @@ namespace Bwrx.Tests.Unit
         [Fact]
         public void CacheSizeLimitIsImposed()
         {
-            var eventMetaCache = new EventMetaCache {MaxQueueLength = 10};
-
+            var eventMetadataCache = new EventMetaCache {Initialised = true, MaxQueueLength = 10};
             dynamic payload = new ExpandoObject();
             payload.Name = "";
 
@@ -43,19 +42,19 @@ namespace Bwrx.Tests.Unit
                 {{"User-Agent", "USERAGENT"}, {"Content-Type", "CONTENT"}};
 
             for (var i = 0; i < 11; i++)
-                eventMetaCache.Add(
+                eventMetadataCache.Add(
                     payload,
                     "BRANDCODE",
                     "EVENTNAME",
                     httpHeaders);
 
-            Assert.Equal(10, eventMetaCache.NumItems);
+            Assert.Equal(10, eventMetadataCache.NumItems);
         }
 
         [Fact]
         public void Top50EventMetadataPayloadsAreDequeued()
         {
-            var eventMetadataCache = new EventMetaCache {MaxItemsToDequeue = 50};
+            var eventMetadataCache = new EventMetaCache {MaxItemsToDequeue = 50, Initialised = true};
 
             var httpHeaders = new Dictionary<string, string>
                 {{"User-Agent", "USERAGENT"}, {"Content-Type", "CONTENT"}};

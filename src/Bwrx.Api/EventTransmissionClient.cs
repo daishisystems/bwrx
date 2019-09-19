@@ -22,12 +22,11 @@ namespace Bwrx.Api
             new Lazy<EventTransmissionClient>(() => new EventTransmissionClient());
 
         private HttpClient _httpClient;
+        private volatile bool _initialised;
 
         private PublisherClient _publisher;
 
         public static EventTransmissionClient Instance => InnerEventTransmissionClient.Value;
-
-        public bool Initialised { get; private set; }
 
         public event EventHandlers.InitialisationFailedEventHandler InitialisationFailed;
 
@@ -39,6 +38,7 @@ namespace Bwrx.Api
             CloudServiceCredentials cloudServiceCredentials,
             ClientConfigSettings clientConfigSettings)
         {
+            if (_initialised) return;
             if (cloudServiceCredentials == null)
                 throw new ArgumentNullException(nameof(cloudServiceCredentials));
             if (clientConfigSettings == null)
@@ -55,7 +55,7 @@ namespace Bwrx.Api
                 else
                     InitHttp(clientConfigSettings);
 
-                Initialised = true;
+                _initialised = true;
             }
             catch (Exception exception)
             {
@@ -70,6 +70,7 @@ namespace Bwrx.Api
             ClientConfigSettings clientConfigSettings,
             string subscriptionId)
         {
+            if (_initialised) return;
             if (cloudServiceCredentials == null)
                 throw new ArgumentNullException(nameof(cloudServiceCredentials));
             if (clientConfigSettings == null)
@@ -109,7 +110,7 @@ namespace Bwrx.Api
                     publisherClientCreationSettings,
                     publisherSettings);
 
-                Initialised = true;
+                _initialised = true;
             }
             catch (Exception exception)
             {
@@ -153,13 +154,7 @@ namespace Bwrx.Api
                 if (!eventMeta.Any()) return;
 
                 var jArray = new JArray();
-
-                foreach (var s in eventMeta)
-                {
-                    var jToken = JToken.Parse(s);
-                    jArray.Add(jToken);
-                }
-
+                foreach (var jToken in eventMeta.Select(JToken.Parse)) jArray.Add(jToken);
                 await _httpClient.PostAsync(requestUri, // todo: throw error if response code != 200
                     new StringContent(jArray.ToString(), Encoding.UTF8, "application/json"));
 

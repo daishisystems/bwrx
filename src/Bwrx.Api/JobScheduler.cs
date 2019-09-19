@@ -10,6 +10,9 @@ namespace Bwrx.Api
 {
     public class JobScheduler
     {
+        public delegate void JobSchedulerShutdownFailedEventHandler(object sender,
+            JobSchedulerShutdownFailedEventArgs e);
+
         public delegate void JobSchedulerStartFailedEventHandler(object sender, JobSchedulerStartFailedEventArgs e);
 
         private static readonly Lazy<JobScheduler> InnerJobScheduler =
@@ -39,6 +42,8 @@ namespace Bwrx.Api
 
         public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
 
+        public event JobSchedulerShutdownFailedEventHandler JobSchedulerShutdownFailed;
+
         public async Task StartAsync(
             EventTransmissionClient eventTransmissionClient,
             EventMetaCache eventMetaCache,
@@ -62,8 +67,9 @@ namespace Bwrx.Api
                 {
                     ["quartz.threadPool.threadCount"] = eventTransmissionClientConfigSettings.MaxThreadCount.ToString()
                 });
-                _scheduler = await factory.GetScheduler();
-                
+
+                if (_scheduler == null || _scheduler.IsShutdown)
+                    _scheduler = await factory.GetScheduler();
                 await _scheduler.Start();
 
                 try
@@ -100,6 +106,20 @@ namespace Bwrx.Api
             }
         }
 
+        public void Shutdown()
+        {
+            if (_scheduler == null || _scheduler.IsShutdown) return;
+            try
+            {
+                _scheduler.Shutdown(true).Wait();
+            }
+            catch (Exception e)
+            {
+                const string errorMessage = "Failed to shutdown background tasks.";
+                OnJobSchedulerShutdownFailed(new JobSchedulerShutdownFailedEventArgs(new Exception(errorMessage, e)));
+            }
+        }
+
         private async Task StartGetBlacklistJob(
             Blacklist blacklist,
             Whitelist whitelist,
@@ -107,32 +127,37 @@ namespace Bwrx.Api
         {
             const string blacklistJobName = "getBlacklistJob";
 
-            _getBlacklistJobDetail = new JobDetailImpl(
-                blacklistJobName,
-                typeof(GetBlacklistJob))
-            {
-                JobDataMap =
+            if (_getBlacklistJobDetail == null)
+                _getBlacklistJobDetail = new JobDetailImpl(
+                    blacklistJobName,
+                    typeof(GetBlacklistJob))
                 {
-                    [nameof(Blacklist)] = blacklist,
-                    [nameof(Whitelist)] = whitelist
-                }
-            };
+                    JobDataMap =
+                    {
+                        [nameof(Blacklist)] = blacklist,
+                        [nameof(Whitelist)] = whitelist
+                    }
+                };
 
-            _getBlacklistJobListener = new GetBlacklistJobListener();
+            if (_getBlacklistJobListener == null)
+            {
+                _getBlacklistJobListener = new GetBlacklistJobListener();
 
-            if (GetBlacklistJobExecutionFailed != null)
-                _getBlacklistJobListener.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
+                if (GetBlacklistJobExecutionFailed != null)
+                    _getBlacklistJobListener.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
 
-            _scheduler.ListenerManager.AddJobListener(
-                _getBlacklistJobListener,
-                KeyMatcher<JobKey>.KeyEquals(new JobKey(blacklistJobName)));
+                _scheduler.ListenerManager.AddJobListener(
+                    _getBlacklistJobListener,
+                    KeyMatcher<JobKey>.KeyEquals(new JobKey(blacklistJobName)));
+            }
 
-            _getBlacklistJobTrigger = TriggerBuilder.Create()
-                .StartNow()
-                .WithSimpleSchedule(s => s
-                    .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetBlacklistTimeInterval)
-                    .RepeatForever())
-                .Build();
+            if (_getBlacklistJobTrigger == null)
+                _getBlacklistJobTrigger = TriggerBuilder.Create()
+                    .StartNow()
+                    .WithSimpleSchedule(s => s
+                        .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetBlacklistTimeInterval)
+                        .RepeatForever())
+                    .Build();
 
             await _scheduler.ScheduleJob(_getBlacklistJobDetail, _getBlacklistJobTrigger);
         }
@@ -180,33 +205,38 @@ namespace Bwrx.Api
         {
             const string publishJobName = "eventMetadataUploadJob";
 
-            _eventMetadataPublishJobDetail = new JobDetailImpl(
-                publishJobName,
-                typeof(EventMetadataPublishJob))
-            {
-                JobDataMap =
+            if (_eventMetadataPublishJobDetail == null)
+                _eventMetadataPublishJobDetail = new JobDetailImpl(
+                    publishJobName,
+                    typeof(EventMetadataPublishJob))
                 {
-                    [nameof(EventTransmissionClient)] = eventTransmissionClient,
-                    [nameof(EventMetaCache)] = eventMetaCache,
-                    [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
-                }
-            };
+                    JobDataMap =
+                    {
+                        [nameof(EventTransmissionClient)] = eventTransmissionClient,
+                        [nameof(EventMetaCache)] = eventMetaCache,
+                        [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
+                    }
+                };
 
-            _eventMetadataUploadJobListener = new EventMetadataPublishJobListener();
+            if (_eventMetadataUploadJobListener == null)
+            {
+                _eventMetadataUploadJobListener = new EventMetadataPublishJobListener();
 
-            if (EventMetadataPublishJobExecutionFailed != null)
-                _eventMetadataUploadJobListener.EventMetadataPublishJobExecutionFailed +=
-                    EventMetadataPublishJobExecutionFailed;
+                if (EventMetadataPublishJobExecutionFailed != null)
+                    _eventMetadataUploadJobListener.EventMetadataPublishJobExecutionFailed +=
+                        EventMetadataPublishJobExecutionFailed;
 
-            _scheduler.ListenerManager.AddJobListener(
-                _eventMetadataUploadJobListener,
-                KeyMatcher<JobKey>.KeyEquals(new JobKey(publishJobName)));
+                _scheduler.ListenerManager.AddJobListener(
+                    _eventMetadataUploadJobListener,
+                    KeyMatcher<JobKey>.KeyEquals(new JobKey(publishJobName)));
+            }
 
-            _eventMetadataPublishJobTrigger = TriggerBuilder.Create()
-                .WithSimpleSchedule(s => s
-                    .WithIntervalInSeconds(eventTransmissionClientConfigSettings.PublishExecutionTimeInterval)
-                    .RepeatForever())
-                .Build();
+            if (_eventMetadataPublishJobTrigger == null)
+                _eventMetadataPublishJobTrigger = TriggerBuilder.Create()
+                    .WithSimpleSchedule(s => s
+                        .WithIntervalInSeconds(eventTransmissionClientConfigSettings.PublishExecutionTimeInterval)
+                        .RepeatForever())
+                    .Build();
 
             await _scheduler.ScheduleJob(_eventMetadataPublishJobDetail, _eventMetadataPublishJobTrigger);
         }
@@ -230,6 +260,11 @@ namespace Bwrx.Api
             EventMetadataPublishJobExecutionFailedEventArgs e)
         {
             EventMetadataPublishJobExecutionFailed?.Invoke(this, e);
+        }
+
+        private void OnJobSchedulerShutdownFailed(JobSchedulerShutdownFailedEventArgs e)
+        {
+            JobSchedulerShutdownFailed?.Invoke(this, e);
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #endif
-
 namespace Bwrx.Api
 {
 #if NET461
@@ -97,6 +96,7 @@ namespace Bwrx.Api
             if (!canParseBlockingHttpStatusCode) blockingHttpStatusCode = HttpStatusCode.Forbidden;
             var httpContent = await request.Content.ReadAsStringAsync();
 
+            // todo: Obfuscate the IP addresses
             var ipAddressEntryAttempt = new IpAddressEntryAttempt
             {
                 IpAddresses = blacklistedIpAddresses.Select(ip => ip.ToString()),

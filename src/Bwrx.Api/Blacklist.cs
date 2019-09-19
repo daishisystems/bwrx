@@ -16,6 +16,7 @@ namespace Bwrx.Api
         private string _blacklistUri;
 
         private HttpClient _httpClient;
+        private volatile bool _initialised;
         private int _maxNumIpAddressesPerHttpRequest;
 
         public static Blacklist Instance => Lazy.Value;
@@ -38,6 +39,7 @@ namespace Bwrx.Api
 
         public void Init(ClientConfigSettings clientConfigSettings)
         {
+            if (_initialised) return;
             if (clientConfigSettings == null) throw new ArgumentNullException(nameof(clientConfigSettings));
 
             if (!string.IsNullOrEmpty(clientConfigSettings.HttpProxy))
@@ -64,11 +66,11 @@ namespace Bwrx.Api
             _blacklistCountUri = clientConfigSettings.BlacklistCountUri;
             _blacklistRangesUri = clientConfigSettings.BlacklistRangesUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
+            _initialised = true;
         }
 
         public bool IsIpAddressBlacklisted(string ipAddress)
         {
-            // todo: Use Enum to identify black|whitelisted, range-listed ip addresses and publish handler event
             if (IpAddressIsInRanges(ipAddress, Whitelist.Instance.IpAddressRanges, out _)) return false;
             if (Whitelist.Instance.IpAddresses.Contains(ipAddress)) return false;
             return IpAddresses.Contains(ipAddress) || IpAddressIsInRanges(ipAddress, IpAddressRanges, out _);
@@ -157,7 +159,6 @@ namespace Bwrx.Api
             throw new Exception("Could not parse IP address range '" + ipAddressRange + "'");
         }
 
-        // todo: Add notification events
         public bool IpAddressIsInRanges(string ipAddress, List<string> ipAddressRanges, out int ipRangeIndex)
         {
             if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));

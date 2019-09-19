@@ -52,7 +52,7 @@ namespace Bwrx.Api
 
             return paginationSequences;
         }
-        // todo: Allow partial download during failure, notify on failure
+        
         public async Task<IEnumerable<T>> LoadDataAsync<T>(
             HttpClient httpClient,
             string requestUri,
@@ -62,7 +62,7 @@ namespace Bwrx.Api
             if (string.IsNullOrEmpty(requestUri)) throw new ArgumentNullException(nameof(requestUri));
             if (paginationSequence == null) throw new ArgumentNullException(nameof(paginationSequence));
             var dataItems = new List<T>();
-            // todo: Add GZIP encoding just in case
+            
             foreach (var sequence in paginationSequence)
             {
                 var formattedRequestUri = FormatRequestUriForPagination(requestUri, sequence.Item1, sequence.Item2);
