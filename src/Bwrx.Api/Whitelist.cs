@@ -13,6 +13,8 @@ namespace Bwrx.Api
 
         private HttpClient _httpClient;
         private volatile bool _initialised;
+        private string _ipAddressesTableName;
+        private string _ipAddressRangesTableName;
         private int _maxNumIpAddressesPerHttpRequest;
 
         private string _whiteListCountUri;
@@ -22,7 +24,7 @@ namespace Bwrx.Api
         public static Whitelist Instance => Lazy.Value;
 
         public HashSet<string> IpAddresses { get; private set; } = new HashSet<string>();
-        public List<string> IpAddressRanges { get; set; } = new List<string>();
+        public List<string> IpAddressRanges { get; private set; } = new List<string>();
 
         public event EventHandlers.IpAddressAddedHandler IpAddressAdded;
 
@@ -65,6 +67,8 @@ namespace Bwrx.Api
             _whiteListCountUri = clientConfigSettings.WhitelistCountUri;
             _whitelistRangesUri = clientConfigSettings.WhitelistRangesUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
+            _ipAddressesTableName = clientConfigSettings.WhitelistIPAddressesTableName;
+            _ipAddressRangesTableName = clientConfigSettings.WhitelistIPAddressRangesTableName;
             _initialised = true;
         }
 
@@ -83,7 +87,7 @@ namespace Bwrx.Api
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
                         _whiteListCountUri +
-                        "?tablename=whitelist");
+                        "?tablename=" + _ipAddressesTableName);
                 if (recordCount.Total == 0) return new HashSet<string>();
 
                 var numHttpRequestsRequired =
@@ -115,7 +119,7 @@ namespace Bwrx.Api
                 var bulkDataDownloader = new BulkDataDownloader();
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
-                        _whiteListCountUri + "?tablename=whitelistranges");
+                        _whiteListCountUri + "?tablename=" + _ipAddressRangesTableName);
                 if (recordCount.Total == 0) return new List<string>();
 
                 var numHttpRequestsRequired =

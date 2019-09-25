@@ -14,6 +14,8 @@ namespace Bwrx.Api
         private string _blacklistCountUri;
         private string _blacklistRangesUri;
         private string _blacklistUri;
+        private string _ipAddressesTableName;
+        private string _ipAddressRangesTableName;
 
         private HttpClient _httpClient;
         private volatile bool _initialised;
@@ -33,9 +35,13 @@ namespace Bwrx.Api
 
         public event EventHandlers.GotLatestListEventHandler GotLatestBlacklist;
 
+        public event EventHandlers.GotLatestListEventHandler GotLatestBlacklistRanges;
+
         public event EventHandlers.GetLatestListFailedEventHandler GetLatestBlacklistFailed;
 
         public event EventHandlers.CouldNotParseIpAddressEventHandler CouldNotParseIpAddress;
+
+        public event EventHandlers.IPAddressRangeCheckFailedEventHandler IPAddressRangeCheckFailed;
 
         public void Init(ClientConfigSettings clientConfigSettings)
         {
@@ -66,6 +72,8 @@ namespace Bwrx.Api
             _blacklistCountUri = clientConfigSettings.BlacklistCountUri;
             _blacklistRangesUri = clientConfigSettings.BlacklistRangesUri;
             _maxNumIpAddressesPerHttpRequest = clientConfigSettings.MaxNumIpAddressesPerHttpRequest;
+            _ipAddressesTableName = clientConfigSettings.BlacklistIPAddressesTableName;
+            _ipAddressRangesTableName = clientConfigSettings.BlacklistIPAddressRangesTableName;
             _initialised = true;
         }
 
@@ -82,7 +90,7 @@ namespace Bwrx.Api
             IpAddressRanges = new List<string>(ipAddressRanges);
             OnBlacklistUpdated(new EventArgs());
         }
-
+        // todo: Lock down Cloud Functions w/ API key
         public async Task<HashSet<string>> GetLatestIndividualAsync()
         {
             try
@@ -90,7 +98,7 @@ namespace Bwrx.Api
                 var bulkDataDownloader = new BulkDataDownloader();
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
-                        _blacklistCountUri + "?tablename=blacklist");
+                        _blacklistCountUri + "?tablename=" + _ipAddressesTableName);
                 if (recordCount.Total == 0) return new HashSet<string>();
 
                 var numHttpRequestsRequired =
@@ -122,7 +130,7 @@ namespace Bwrx.Api
                 var bulkDataDownloader = new BulkDataDownloader();
                 var recordCount =
                     await bulkDataDownloader.GetRecordCountAsync(_httpClient,
-                        _blacklistCountUri + "?tablename=blacklistranges");
+                        _blacklistCountUri + "?tablename=" + _ipAddressRangesTableName);
                 if (recordCount.Total == 0) return new List<string>();
 
                 var numHttpRequestsRequired =
@@ -133,8 +141,20 @@ namespace Bwrx.Api
                 var data = await bulkDataDownloader.LoadDataAsync<IpAddressRangeMeta>(_httpClient, _blacklistRangesUri,
                     paginationSequence);
 
-                var blacklistranges = data.Select(ipAddressMeta => ipAddressMeta.IpAddressRange).ToList();
-                OnGotLatestBlacklist(new GotLatestListEventArgs(blacklistranges.Count));
+                var ipAddressRangeMeta = data as IpAddressRangeMeta[] ?? data.ToArray();
+                var blacklistranges = ipAddressRangeMeta.Select(m => m.IpAddressRange).ToList();
+                Dictionary<string, int> regionCounts;
+                try
+                {
+                    regionCounts = Agent.GroupByRegion(ipAddressRangeMeta);
+                }
+                catch (Exception)
+                {
+                    regionCounts = new Dictionary<string, int>();
+                    // todo: New event handler
+                }
+
+                OnGotLatestBlacklistRanges(new GotLatestListEventArgs(blacklistranges.Count, regionCounts));
                 return blacklistranges;
             }
             catch (Exception exception)
@@ -147,40 +167,62 @@ namespace Bwrx.Api
 
         public bool IpAddressIsInRange(string ipAddress, string ipAddressRange)
         {
-            if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
-            if (string.IsNullOrEmpty(ipAddressRange)) throw new ArgumentNullException(nameof(ipAddressRange));
+            try
+            {
+                if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
+                if (string.IsNullOrEmpty(ipAddressRange)) throw new ArgumentNullException(nameof(ipAddressRange));
 
-            var canParseIpAddress = IPAddress.TryParse(ipAddress, out var ip);
-            if (!canParseIpAddress) throw new Exception("Could not parse IP address '" + ipAddress + "'");
+                var canParseIpAddress = IPAddress.TryParse(ipAddress, out var ip);
+                if (!canParseIpAddress) throw new Exception("Could not parse IP address '" + ipAddress + "'");
 
-            var canParseIpAddressRange = IPAddressRange.TryParse(ipAddressRange, out var ipRange);
-            if (canParseIpAddressRange)
-                return ipRange.Contains(ip);
-            throw new Exception("Could not parse IP address range '" + ipAddressRange + "'");
+                var canParseIpAddressRange = IPAddressRange.TryParse(ipAddressRange, out var ipRange);
+                if (canParseIpAddressRange)
+                    return ipRange.Contains(ip);
+                throw new Exception("Could not parse IP address range '" + ipAddressRange + "'");
+            }
+            catch (Exception e)
+            {
+                var ipRange = string.IsNullOrEmpty(ipAddressRange) ? "NOT-SET" : ipAddressRange;
+                OnIPAddressRangeCheckFailed(new IPAddressRangeCheckFailedEventArgs(
+                    new Exception("Could not parse IP address range '" + ipRange + "'", e)));
+                return false;
+            }
         }
 
         public bool IpAddressIsInRanges(string ipAddress, List<string> ipAddressRanges, out int ipRangeIndex)
         {
-            if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
-            if (ipAddressRanges == null) throw new ArgumentNullException(nameof(ipAddressRanges));
-
-            if (!ipAddressRanges.Any())
+            string ipRange = null;
+            try
             {
+                if (string.IsNullOrEmpty(ipAddress)) throw new ArgumentNullException(nameof(ipAddress));
+                if (ipAddressRanges == null) throw new ArgumentNullException(nameof(ipAddressRanges));
+
+                if (!ipAddressRanges.Any())
+                {
+                    ipRangeIndex = 0;
+                    return false;
+                }
+
+                var isInRange = false;
+                var counter = 0;
+                do
+                {
+                    ipRange = ipAddressRanges[counter];
+                    if (IpAddressIsInRange(ipAddress, ipRange)) isInRange = true;
+                    counter++;
+                } while (!isInRange && counter < ipAddressRanges.Count);
+
+                ipRangeIndex = counter - 1;
+                return isInRange;
+            }
+            catch (Exception e)
+            {
+                var ipAddressRange = string.IsNullOrEmpty(ipRange) ? "NOT-SET" : ipRange;
+                OnIPAddressRangeCheckFailed(new IPAddressRangeCheckFailedEventArgs(
+                    new Exception("Could not parse IP address range '" + ipAddressRange + "'", e)));
                 ipRangeIndex = 0;
                 return false;
             }
-
-            var isInRange = false;
-            var counter = 0;
-            do
-            {
-                var ipRange = ipAddressRanges[counter];
-                if (IpAddressIsInRange(ipAddress, ipRange)) isInRange = true;
-                counter++;
-            } while (!isInRange && counter < ipAddressRanges.Count);
-
-            ipRangeIndex = counter - 1;
-            return isInRange;
         }
 
         private void OnIpAddressAdded(IpAddressAddedEventArgs e)
@@ -211,6 +253,16 @@ namespace Bwrx.Api
         private void OnCouldNotParseIpAddress(CouldNotParseIpAddressEventArgs e)
         {
             CouldNotParseIpAddress?.Invoke(this, e);
+        }
+        // todo: New event handler
+        private void OnIPAddressRangeCheckFailed(IPAddressRangeCheckFailedEventArgs e)
+        {
+            IPAddressRangeCheckFailed?.Invoke(this, e);
+        }
+
+        private void OnGotLatestBlacklistRanges(GotLatestListEventArgs e)
+        {
+            GotLatestBlacklistRanges?.Invoke(this, e);
         }
     }
 }

@@ -16,6 +16,8 @@ namespace Bwrx.Api
         private readonly int _blockingHttpStatusCode;
         private readonly string _ipAddressHeaderName;
         private readonly bool _passiveMode;
+        private readonly string _newRelicInfoEventName;
+        private readonly string _newRelicErrorEventName;
 
         public BlockingDelegatingHandler(ClientConfigSettings clientConfigSettings)
         {
@@ -24,7 +26,44 @@ namespace Bwrx.Api
             _ipAddressHeaderName = clientConfigSettings.IpAddressHeaderName;
             _blockingHttpStatusCode = clientConfigSettings.BlockingHttpStatusCode;
             _passiveMode = clientConfigSettings.PassiveBlockingMode;
+            _newRelicErrorEventName = clientConfigSettings.NewRelicErrorEventName;
+            _newRelicInfoEventName = clientConfigSettings.NewRelicInfoEventName;
+            BlacklistedIpAddressDetected += BlockingDelegatingHandler_BlacklistedIpAddressDetected;
+            CouldNotParseIpAddressHttpHeaderValues += BlockingDelegatingHandler_CouldNotParseIpAddressHttpHeaderValues;
+            CouldNotGetIpAddressHttpHeaderValues += BlockingDelegatingHandler_CouldNotGetIpAddressHttpHeaderValues;
             Agent.Instance.HandlerIsInitialised = true;
+        }
+
+        private void BlockingDelegatingHandler_CouldNotGetIpAddressHttpHeaderValues(
+            object sender,
+            CouldNotGetIpAddressHttpHeaderValuesEventArgs e)
+        {
+            try
+            {
+                var attributes = new KeyValuePair<string, object>("errorMessage",
+                    string.Concat("Could not get IP address HTTP header values: ", e.Exception.Message));
+                Agent.Instance.RecordNewRelicCustomEvent(_newRelicErrorEventName, new[] {attributes});
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void BlockingDelegatingHandler_CouldNotParseIpAddressHttpHeaderValues(
+            object sender,
+            CouldNotParseIpAddressHttpHeaderValuesEventArgs e)
+        {
+            try
+            {
+                var attributes = new KeyValuePair<string, object>("errorMessage",
+                    string.Concat("Could not parse IP address HTTP headers: ", e.Exception.Message));
+                Agent.Instance.RecordNewRelicCustomEvent(_newRelicErrorEventName, new[] {attributes});
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         public event EventHandlers.CouldNotParseIpAddressHttpHeaderValuesEventHandler
@@ -34,6 +73,24 @@ namespace Bwrx.Api
             CouldNotGetIpAddressHttpHeaderValues;
 
         public event EventHandlers.BlacklistedIpAddressDetectedEventHandler BlacklistedIpAddressDetected;
+
+        private void BlockingDelegatingHandler_BlacklistedIpAddressDetected(object sender,
+            BlacklistedIpAddressDetectedEventArgs e)
+        {
+            try
+            {
+                foreach (var ipAddress in e.IPAddresses)
+                {
+                    var attributes = new KeyValuePair<string, object>("infoMessage",
+                        string.Concat("Blacklisted IP address detected: ", ipAddress));
+                    Agent.Instance.RecordNewRelicCustomEvent(_newRelicInfoEventName, new[] {attributes});
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -84,38 +141,49 @@ namespace Bwrx.Api
                 return await base.SendAsync(request, cancellationToken);
             }
 
-            var blacklistedIpAddresses = ipAddresses
-                .Where(ipAddress => Blacklist.Instance.IsIpAddressBlacklisted(ipAddress))
-                .ToList();
+            List<string> blacklistedIpAddresses;
+            try
+            {
+                blacklistedIpAddresses = ipAddresses
+                    .Where(ipAddress => Blacklist.Instance.IsIpAddressBlacklisted(ipAddress))
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                blacklistedIpAddresses = new List<string>();
+            }
 
             if (blacklistedIpAddresses.Count == 0) return await base.SendAsync(request, cancellationToken);
-            
             var canParseBlockingHttpStatusCode =
                 Enum.TryParse(_blockingHttpStatusCode.ToString(), out HttpStatusCode blockingHttpStatusCode);
-
             if (!canParseBlockingHttpStatusCode) blockingHttpStatusCode = HttpStatusCode.Forbidden;
-            var httpContent = await request.Content.ReadAsStringAsync();
-
-            // todo: Obfuscate the IP addresses
-            var ipAddressEntryAttempt = new IpAddressEntryAttempt
+            try
             {
-                IpAddresses = blacklistedIpAddresses.Select(ip => ip.ToString()),
-                PassiveMode = _passiveMode,
-                Uri = request.RequestUri.ToString(),
-                HttpMethod = request.Method.ToString(),
-                QueryString = request.RequestUri.Query,
-                HttpContent = httpContent
-            };
-            EventMetaCache.Instance.Add(ipAddressEntryAttempt, "Scrape");
-
-            OnBlacklistedIpAddressDetected(
-                new BlacklistedIpAddressDetectedEventArgs(
-                    blacklistedIpAddresses,
-                    _passiveMode,
-                    request.RequestUri.ToString(),
-                    request.Method.ToString(),
-                    request.RequestUri.Query,
-                    httpContent));
+                var httpContent = await request.Content.ReadAsStringAsync();
+                var ipAddressEntryAttempt = new IpAddressEntryAttempt
+                {
+                    IpAddresses = blacklistedIpAddresses.Select(ip => ip.ToString()),
+                    PassiveMode = _passiveMode,
+                    Uri = request.RequestUri.ToString(),
+                    HttpMethod = request.Method.ToString(),
+                    QueryString = request.RequestUri.Query,
+                    HttpContent = httpContent
+                };
+                EventMetaCache.Instance.Add(ipAddressEntryAttempt, "Scrape");
+                var maskedIPAddresses = Agent.MaskIPAddresses(blacklistedIpAddresses);
+                OnBlacklistedIpAddressDetected(
+                    new BlacklistedIpAddressDetectedEventArgs(
+                        maskedIPAddresses,
+                        _passiveMode,
+                        request.RequestUri.ToString(),
+                        request.Method.ToString(),
+                        request.RequestUri.Query,
+                        httpContent));
+            }
+            catch (Exception)
+            {
+                // todo: New event handler [Failed to process bot request]
+            }
 
             if (_passiveMode) return await base.SendAsync(request, cancellationToken);
 

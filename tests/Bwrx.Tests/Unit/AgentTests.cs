@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Specialized;
 #endif
 using System.Collections.Generic;
+using System.Linq;
 using Bwrx.Api;
 using Newtonsoft.Json;
 using Xunit;
@@ -131,6 +132,31 @@ namespace Bwrx.Tests.Unit
             Assert.Equal("USERAGENT", payloadMetadata.HttpHeaders["User-Agent"]);
             Assert.Equal("CONTENT", payloadMetadata.HttpHeaders["Content-Type"]);
             Assert.Equal("1538645229", payloadMetadata.Created);
+        }
+
+        [Fact]
+        public void RegionsAreGroupedAndCounted()
+        {
+            var ipAddressRangeMeta = new List<IpAddressRangeMeta>
+            {
+                new IpAddressRangeMeta {IpAddressRange = "", Region = "India"},
+                new IpAddressRangeMeta {IpAddressRange = "", Region = "Spain"},
+                new IpAddressRangeMeta {IpAddressRange = "", Region = "Spain"}
+            };
+
+            var grouping = Agent.GroupByRegion(ipAddressRangeMeta);
+            Assert.Equal(2, grouping["Spain"]);
+            Assert.Equal(1, grouping["India"]);
+        }
+
+        [Fact]
+        public void IPAddressesAreMasked()
+        {
+            var ipAddresses = new List<string> {"127.1.10.1", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"};
+
+            var maskedIPAddresses = Agent.MaskIPAddresses(ipAddresses).ToList();
+            Assert.Equal("127.0.0.1", maskedIPAddresses[0]);
+            Assert.Equal("2001:0000:0000:0000:0000:8a2e:0370:7334", maskedIPAddresses[1]);
         }
     }
 }

@@ -27,5 +27,12 @@
         public string HttpProxy { get; set; }
         public string CloudFunctionRequestUri { get; set; } = string.Empty;
         public int MaxNumIpAddressesPerHttpRequest { get; set; } = 10000;
+        public string NewRelicErrorEventName { get; set; } = "bwrxErrors";
+        public string NewRelicInfoEventName { get; set; } = "bwrxInfo";
+        public string NewRelicBlacklistInfoEventName { get; set; } = "blacklistInfo";
+        public string BlacklistIPAddressesTableName { get; set; }
+        public string BlacklistIPAddressRangesTableName { get; set; }
+        public string WhitelistIPAddressesTableName { get; set; }
+        public string WhitelistIPAddressRangesTableName { get; set; }
     }
 }

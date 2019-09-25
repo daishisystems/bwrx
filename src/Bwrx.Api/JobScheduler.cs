@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
@@ -41,7 +42,7 @@ namespace Bwrx.Api
         public event GetBlacklistJobExecutionFailedEventHandler GetBlacklistJobExecutionFailed;
 
         public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
-
+        // todo: RYR must subscribe to this event
         public event JobSchedulerShutdownFailedEventHandler JobSchedulerShutdownFailed;
 
         public async Task StartAsync(
@@ -127,37 +128,32 @@ namespace Bwrx.Api
         {
             const string blacklistJobName = "getBlacklistJob";
 
-            if (_getBlacklistJobDetail == null)
-                _getBlacklistJobDetail = new JobDetailImpl(
-                    blacklistJobName,
-                    typeof(GetBlacklistJob))
-                {
-                    JobDataMap =
-                    {
-                        [nameof(Blacklist)] = blacklist,
-                        [nameof(Whitelist)] = whitelist
-                    }
-                };
-
-            if (_getBlacklistJobListener == null)
+            _getBlacklistJobDetail = new JobDetailImpl(
+                blacklistJobName,
+                typeof(GetBlacklistJob))
             {
-                _getBlacklistJobListener = new GetBlacklistJobListener();
+                JobDataMap =
+                {
+                    [nameof(Blacklist)] = blacklist,
+                    [nameof(Whitelist)] = whitelist
+                }
+            };
 
-                if (GetBlacklistJobExecutionFailed != null)
-                    _getBlacklistJobListener.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
+            _getBlacklistJobListener = new GetBlacklistJobListener();
 
-                _scheduler.ListenerManager.AddJobListener(
-                    _getBlacklistJobListener,
-                    KeyMatcher<JobKey>.KeyEquals(new JobKey(blacklistJobName)));
-            }
+            if (GetBlacklistJobExecutionFailed != null)
+                _getBlacklistJobListener.GetBlacklistJobExecutionFailed += GetBlacklistJobExecutionFailed;
 
-            if (_getBlacklistJobTrigger == null)
-                _getBlacklistJobTrigger = TriggerBuilder.Create()
-                    .StartNow()
-                    .WithSimpleSchedule(s => s
-                        .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetBlacklistTimeInterval)
-                        .RepeatForever())
-                    .Build();
+            _scheduler.ListenerManager.AddJobListener(
+                _getBlacklistJobListener,
+                KeyMatcher<JobKey>.KeyEquals(new JobKey(blacklistJobName)));
+
+            _getBlacklistJobTrigger = TriggerBuilder.Create()
+                .StartNow()
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInMinutes(eventTransmissionClientConfigSettings.GetBlacklistTimeInterval)
+                    .RepeatForever())
+                .Build();
 
             await _scheduler.ScheduleJob(_getBlacklistJobDetail, _getBlacklistJobTrigger);
         }
@@ -168,7 +164,6 @@ namespace Bwrx.Api
             ClientConfigSettings eventTransmissionClientConfigSettings)
         {
             const string whitelistJobName = "getWhitelistJob";
-
             _getWhitelistJobDetail = new JobDetailImpl(
                 whitelistJobName,
                 typeof(GetWhitelistJob))
@@ -205,38 +200,33 @@ namespace Bwrx.Api
         {
             const string publishJobName = "eventMetadataUploadJob";
 
-            if (_eventMetadataPublishJobDetail == null)
-                _eventMetadataPublishJobDetail = new JobDetailImpl(
-                    publishJobName,
-                    typeof(EventMetadataPublishJob))
-                {
-                    JobDataMap =
-                    {
-                        [nameof(EventTransmissionClient)] = eventTransmissionClient,
-                        [nameof(EventMetaCache)] = eventMetaCache,
-                        [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
-                    }
-                };
-
-            if (_eventMetadataUploadJobListener == null)
+            _eventMetadataPublishJobDetail = new JobDetailImpl(
+                publishJobName,
+                typeof(EventMetadataPublishJob))
             {
-                _eventMetadataUploadJobListener = new EventMetadataPublishJobListener();
+                JobDataMap =
+                {
+                    [nameof(EventTransmissionClient)] = eventTransmissionClient,
+                    [nameof(EventMetaCache)] = eventMetaCache,
+                    [nameof(ClientConfigSettings)] = eventTransmissionClientConfigSettings
+                }
+            };
 
-                if (EventMetadataPublishJobExecutionFailed != null)
-                    _eventMetadataUploadJobListener.EventMetadataPublishJobExecutionFailed +=
-                        EventMetadataPublishJobExecutionFailed;
+            _eventMetadataUploadJobListener = new EventMetadataPublishJobListener();
 
-                _scheduler.ListenerManager.AddJobListener(
-                    _eventMetadataUploadJobListener,
-                    KeyMatcher<JobKey>.KeyEquals(new JobKey(publishJobName)));
-            }
+            if (EventMetadataPublishJobExecutionFailed != null)
+                _eventMetadataUploadJobListener.EventMetadataPublishJobExecutionFailed +=
+                    EventMetadataPublishJobExecutionFailed;
 
-            if (_eventMetadataPublishJobTrigger == null)
-                _eventMetadataPublishJobTrigger = TriggerBuilder.Create()
-                    .WithSimpleSchedule(s => s
-                        .WithIntervalInSeconds(eventTransmissionClientConfigSettings.PublishExecutionTimeInterval)
-                        .RepeatForever())
-                    .Build();
+            _scheduler.ListenerManager.AddJobListener(
+                _eventMetadataUploadJobListener,
+                KeyMatcher<JobKey>.KeyEquals(new JobKey(publishJobName)));
+
+            _eventMetadataPublishJobTrigger = TriggerBuilder.Create()
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInSeconds(eventTransmissionClientConfigSettings.PublishExecutionTimeInterval)
+                    .RepeatForever())
+                .Build();
 
             await _scheduler.ScheduleJob(_eventMetadataPublishJobDetail, _eventMetadataPublishJobTrigger);
         }
@@ -260,7 +250,7 @@ namespace Bwrx.Api
             EventMetadataPublishJobExecutionFailedEventArgs e)
         {
             EventMetadataPublishJobExecutionFailed?.Invoke(this, e);
-        }
+        }   
 
         private void OnJobSchedulerShutdownFailed(JobSchedulerShutdownFailedEventArgs e)
         {

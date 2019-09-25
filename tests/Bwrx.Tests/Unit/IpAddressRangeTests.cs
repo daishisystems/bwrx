@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Bwrx.Api;
 using Xunit;
 
@@ -13,7 +12,7 @@ namespace Bwrx.Tests.Unit
             const string ipAddressRange = "52.93.34.57/X";
             const string ipAddress = "52.93.34.75";
 
-            Assert.Throws<Exception>(() => { Blacklist.Instance.IpAddressIsInRange(ipAddress, ipAddressRange); });
+            Assert.False(Blacklist.Instance.IpAddressIsInRange(ipAddress, ipAddressRange));
         }
 
         [Fact]
@@ -22,7 +21,7 @@ namespace Bwrx.Tests.Unit
             const string ipAddressRange = "52.93.34.57/16";
             const string ipAddress = "52.93.34.X";
 
-            Assert.Throws<Exception>(() => { Blacklist.Instance.IpAddressIsInRange(ipAddress, ipAddressRange); });
+            Assert.False(Blacklist.Instance.IpAddressIsInRange(ipAddress, ipAddressRange));
         }
 
         [Fact]
@@ -100,7 +99,7 @@ namespace Bwrx.Tests.Unit
         {
             const string ipAddress = "52.93.34.75";
 
-            Assert.Throws<ArgumentNullException>(() => { Blacklist.Instance.IpAddressIsInRange(ipAddress, null); });
+            Assert.False(Blacklist.Instance.IpAddressIsInRange(ipAddress, null));
         }
 
         [Fact]
@@ -108,10 +107,7 @@ namespace Bwrx.Tests.Unit
         {
             const string ipAddressRange = "52.93.34.57/16";
 
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                Blacklist.Instance.IpAddressIsInRange(null, ipAddressRange);
-            });
+            Assert.False(Blacklist.Instance.IpAddressIsInRange(null, ipAddressRange));
         }
     }
 }

@@ -45,7 +45,12 @@ namespace Bwrx.Api
 
         public delegate void IpAddressAddedHandler(object sender, IpAddressAddedEventArgs e);
 
+        public delegate void IPAddressRangeCheckFailedEventHandler(object sender, IPAddressRangeCheckFailedEventArgs e);
+
         public delegate void ListUpdatedHandler(object sender, EventArgs e);
+
+        public delegate void RecordNewRelicCustomEventFailedEventHandler(object sender,
+            RecordNewRelicCustomEventFailedEventArgs e);
 
         public delegate void TransmissionFailedEventHandler(object sender, EventTransmissionFailedEventArgs e);
     }
