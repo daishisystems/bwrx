@@ -4,7 +4,7 @@
 
 
 # Overview
-[![NuGet](https://img.shields.io/badge/nuget-v1.0.0-blue.svg)](https://www.nuget.org/packages/Bwrx.Api/1.0.0)
+[![NuGet](https://img.shields.io/badge/nuget-v1.5.7-blue.svg)](https://www.nuget.org/packages/Bwrx.Api/1.5.7)
 
 High-throughput, low-overhead API designed to monitor and prevent bad actors from accessing your application
 ## Installation
@@ -35,11 +35,21 @@ Note, this examples assumes that the `CloudServiceCredentials` JSON values are s
 A `ClientConfigSettings` instance is necessary to configure the Botworks API. Configuration meta is stored in JSON format 
 ```json
 {
-	"ProjectId": "{Project ID}",	
-	"BlockingHttpStatusCode": 403,
-	"IpAddressHeaderName": "{Default IP address HTTP header name}",
-	"CloudFunctionHttpBaseAddress": "{Cloud function HTTP base address}",
-	"HttpProxy": "{proxy address:port}"
+	"ProjectId": "{Project ID}",
+	"IpAddressHeaderName": "{IP address HTTP header name}",
+	"HttpProxy": "{HTTP proxy address}",
+	"CloudFunctionHttpBaseAddress": "{Cloud function HTTP address through which events will be transmitted}",
+	"BlacklistUri": "{Blacklist download URI}",
+	"BlacklistCountUri": "{Cloud function that calculates the blacklist size}",
+	"BlacklistRangesUri": "{Blacklist ranges download URI}",
+	"GetBlacklistTimeInterval": "{Frequency in minutes that black and whitelists are downloaded}. This property is an Integer type",
+	"WhitelistUri": "{Whitelist download URI}",
+	"WhitelistCountUri": "{Cloud function that calculates the whitelist size}",
+	"WhitelistRangesUri": "{Whitelist ranges download URI}",
+	"BlacklistIPAddressesTableName": "{Blacklist table name}",
+	"BlacklistIPAddressRangesTableName": "{Blacklist IP address ranges table name}",
+	"WhitelistIPAddressesTableName": "{Whitelist table name}",
+	"WhitelistIPAddressRangesTableName": "{Whitelist IP address ranges table name}"
 }
 ```
 Deserialize the configuration settings
@@ -49,9 +59,14 @@ var clientConfigSettings = JsonConvert.DeserializeObject<ClientConfigSettings>(R
 Note, this examples assumes that the `ClientConfigSettings` JSON values are stored in a local `Resource` file
 
 ### Initialisation
-Starting the `Agent` establishes a background process that publishes data to Botworks Cloud
+Starting the `Agent` establishes background processes that publishes data to Botworks Cloud, and downloads black and whitelists
 ```csharp
 Agent.Instance.Start(cloudServiceCredentials, clientConfigSettings);
+```
+### Shutdown
+Shutting down the `Agent` halts all background processes
+```csharp
+Agent.Instance.Shutdown();
 ```
 ## Usage
 ### Monitoring Endpoints
@@ -229,6 +244,18 @@ Errors are handled implicitly, so that the your application process flow is not 
 > `Exception`, *Exception*
 
 > *The `Exception` instance that raised the event*
+##### `Agent.Instance.RecordNewRelicCustomEventFailed`
+> The `Agent` failed to record a New Relic custom event
+> ###### Parameters
+> `Exception`, *Exception*
+
+> *The `Exception` instance that raised the event*
+##### `Agent.Instance.IPAddressRangeCheckFailed`
+> The `Agent` failed to analyse a range of IP addresses or IP address ranges when determining whether an IP address is blacklisted
+> ###### Parameters
+> `Exception`, *Exception*
+
+> *The `Exception` instance that raised the event*
 ### Subscribing to Notifications
 Your application can subscribe to any successful operation
 ##### `BlockingDelegatingHandler.BlacklistedIpAddressDetected`
@@ -289,5 +316,19 @@ Your application can subscribe to any successful operation
 > `IPAddress`, *IPAddress*
 
 > *The IP address that has been added to the whitelist*
-##### `Agent.Instance.WhitelistListUpdated`
-> The whitelist has been updated to the latest version
+##### `Agent.Instance.GotLatestBlacklistRanges`
+> The latest blacklist ranges have been downloaded
+> ###### Parameters
+> `NumIpAddresses`, *int*
+
+> *The total number of IP address ranges that have been downloaded*
+
+> `RegionCounts`, *Dictionary<string, int>*
+
+> *An aggregate breakdown of each IP address range and associated region with counts of each*
+##### `Agent.Instance.WhitelistGotLatestListRanges`
+> The latest whitelist ranges have been downloaded
+> ###### Parameters
+> `NumIpAddresses`, *int*
+
+> *The total number of IP address ranges that have been downloaded*
