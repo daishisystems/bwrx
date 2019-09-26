@@ -69,6 +69,7 @@ namespace Bwrx.Api
         public event EventHandlers.AddIpAddressFailedEventHandler WhitelistAddIpAddressFailed;
         public event EventHandlers.ListUpdatedHandler WhitelistListUpdated;
         public event EventHandlers.GotLatestListEventHandler WhitelistGotLatestList;
+        public event EventHandlers.GotLatestListEventHandler WhitelistGotLatestListRanges;
         public event EventHandlers.GetLatestListFailedEventHandler WhitelistGetLatestListFailed;
         public event EventHandlers.CouldNotParseIpAddressEventHandler WhitelistCouldNotParseIpAddress;
 
@@ -130,6 +131,8 @@ namespace Bwrx.Api
             Whitelist.Instance.GotLatestWhitelist += Instance_GotLatestWhitelist;
             Whitelist.Instance.GotLatestWhitelist += WhitelistGotLatestList;
             Whitelist.Instance.GetLatestWhitelistFailed += Instance_GetLatestWhitelistFailed;
+            Whitelist.Instance.GotLatestWhitelistRanges += Instance_GotLatestWhitelistRanges;
+            Whitelist.Instance.GotLatestWhitelistRanges += WhitelistGotLatestListRanges;
             Whitelist.Instance.GetLatestWhitelistFailed += WhitelistGetLatestListFailed;
             Whitelist.Instance.CouldNotParseIpAddress += WhitelistCouldNotParseIpAddress;
             ClientConfigSettings = clientConfigSettings;
@@ -151,6 +154,22 @@ namespace Bwrx.Api
                 clientConfigSettings).Wait();
 
             _initialised = true;
+        }
+
+        private void Instance_GotLatestWhitelistRanges(object sender, GotLatestListEventArgs e)
+        {
+#if NET461
+            try
+            {
+                var attributes = new KeyValuePair<string, object>("infoMessage",
+                    string.Concat("Whitelist ranges downloaded. No. items: ", e.NumIpAddresses));
+                RecordNewRelicCustomEvent(ClientConfigSettings.NewRelicInfoEventName, new[] {attributes});
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+#endif
         }
 
         private void Instance_GotLatestBlacklistRanges(object sender, GotLatestListEventArgs e)
@@ -481,7 +500,7 @@ namespace Bwrx.Api
                 throw new JsonSerializationException($"Could not edit the JSON payload: {json}", exception);
             }
         }
-        // todo: Add error handler
+        // todo: [LP] Add error handler
         public static IEnumerable<string> MaskIPAddresses(IEnumerable<string> ipAddresses)
         {
             if (ipAddresses == null) throw new ArgumentNullException(nameof(ipAddresses));

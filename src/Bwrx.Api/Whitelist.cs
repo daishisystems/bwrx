@@ -33,6 +33,7 @@ namespace Bwrx.Api
         public event EventHandlers.ListUpdatedHandler WhitelistUpdated;
 
         public event EventHandlers.GotLatestListEventHandler GotLatestWhitelist;
+        public event EventHandlers.GotLatestListEventHandler GotLatestWhitelistRanges;
 
         public event EventHandlers.GetLatestListFailedEventHandler GetLatestWhitelistFailed;
 
@@ -129,9 +130,8 @@ namespace Bwrx.Api
                     _maxNumIpAddressesPerHttpRequest);
                 var data = await bulkDataDownloader.LoadDataAsync<IpAddressRangeMeta>(_httpClient, _whitelistRangesUri,
                     paginationSequence);
-
                 var whitelistranges = data.Select(ipAddressMeta => ipAddressMeta.IpAddressRange).ToList();
-                OnGotLatestWhitelist(new GotLatestListEventArgs(whitelistranges.Count));
+                OnGotLatestWhitelistRanges(new GotLatestListEventArgs(whitelistranges.Count));
                 return whitelistranges;
             }
             catch (Exception exception)
@@ -170,6 +170,11 @@ namespace Bwrx.Api
         private void OnCouldNotParseIpAddress(CouldNotParseIpAddressEventArgs e)
         {
             CouldNotParseIpAddress?.Invoke(this, e);
+        }
+
+        private void OnGotLatestWhitelistRanges(GotLatestListEventArgs e)
+        {
+            GotLatestWhitelistRanges?.Invoke(this, e);
         }
     }
 }

@@ -182,7 +182,7 @@ namespace Bwrx.Api
             }
             catch (Exception)
             {
-                // todo: New event handler [Failed to process bot request]
+                // todo: [LP] New event handler [Failed to process bot request]
             }
 
             if (_passiveMode) return await base.SendAsync(request, cancellationToken);

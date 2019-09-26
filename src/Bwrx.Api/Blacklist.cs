@@ -90,7 +90,7 @@ namespace Bwrx.Api
             IpAddressRanges = new List<string>(ipAddressRanges);
             OnBlacklistUpdated(new EventArgs());
         }
-        // todo: Lock down Cloud Functions w/ API key
+        // todo: [LP] Lock down Cloud Functions w/ API key
         public async Task<HashSet<string>> GetLatestIndividualAsync()
         {
             try
@@ -151,7 +151,7 @@ namespace Bwrx.Api
                 catch (Exception)
                 {
                     regionCounts = new Dictionary<string, int>();
-                    // todo: New event handler
+                    // todo: [LP] New event handler
                 }
 
                 OnGotLatestBlacklistRanges(new GotLatestListEventArgs(blacklistranges.Count, regionCounts));
