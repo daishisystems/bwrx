@@ -112,6 +112,7 @@ namespace Bwrx.Api
                 const string errorMessage = "Could not get IP address HTTP headers.";
                 OnCouldNotGetIpAddressHttpHeaderValues(new CouldNotGetIpAddressHttpHeaderValuesEventArgs(
                     _ipAddressHeaderName, new Exception(errorMessage, exception)));
+                // todo: Return here
             }
 
             if (!gotIpAddressHttpHeaders)
@@ -132,6 +133,7 @@ namespace Bwrx.Api
                 const string errorMessage = "Could not parse IP addresses from HTTP headers";
                 OnCouldNotParseIpAddressHttpHeaderValues(new CouldNotParseIpAddressHttpHeaderValuesEventArgs(
                     request.Headers.GetValues(_ipAddressHeaderName), new Exception(errorMessage, exception)));
+                // todo: Return here
             }
 
             if (!canParseIpAddressHeaders)
@@ -151,9 +153,11 @@ namespace Bwrx.Api
             catch (Exception)
             {
                 blacklistedIpAddresses = new List<string>();
+                // todo: Raise custom error handler
             }
 
             if (blacklistedIpAddresses.Count == 0) return await base.SendAsync(request, cancellationToken);
+            // todo: try-catch here
             var canParseBlockingHttpStatusCode =
                 Enum.TryParse(_blockingHttpStatusCode.ToString(), out HttpStatusCode blockingHttpStatusCode);
             if (!canParseBlockingHttpStatusCode) blockingHttpStatusCode = HttpStatusCode.Forbidden;

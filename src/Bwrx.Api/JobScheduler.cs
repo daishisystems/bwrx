@@ -42,7 +42,7 @@ namespace Bwrx.Api
         public event GetBlacklistJobExecutionFailedEventHandler GetBlacklistJobExecutionFailed;
 
         public event GetWhitelistJobExecutionFailedEventHandler GetWhitelistJobExecutionFailed;
-        // todo: RYR must subscribe to this event
+        
         public event JobSchedulerShutdownFailedEventHandler JobSchedulerShutdownFailed;
 
         public async Task StartAsync(
@@ -69,8 +69,7 @@ namespace Bwrx.Api
                     ["quartz.threadPool.threadCount"] = eventTransmissionClientConfigSettings.MaxThreadCount.ToString()
                 });
 
-                if (_scheduler == null || _scheduler.IsShutdown)
-                    _scheduler = await factory.GetScheduler();
+                _scheduler = await factory.GetScheduler();
                 await _scheduler.Start();
 
                 try

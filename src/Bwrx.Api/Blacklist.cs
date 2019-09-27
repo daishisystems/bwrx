@@ -254,7 +254,7 @@ namespace Bwrx.Api
         {
             CouldNotParseIpAddress?.Invoke(this, e);
         }
-        // todo: New event handler
+        
         private void OnIPAddressRangeCheckFailed(IPAddressRangeCheckFailedEventArgs e)
         {
             IPAddressRangeCheckFailed?.Invoke(this, e);

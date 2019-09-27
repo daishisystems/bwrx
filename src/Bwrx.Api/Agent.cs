@@ -570,7 +570,6 @@ namespace Bwrx.Api
             }
         }
 
-        // todo: RYR need to subscribe to thrown error events here
         public void RecordNewRelicCustomEvent(
             string eventType,
             IEnumerable<KeyValuePair<string, object>> attributes)
