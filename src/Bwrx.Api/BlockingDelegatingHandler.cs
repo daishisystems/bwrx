@@ -1,4 +1,5 @@
-﻿#if NET461
+﻿
+#if NET461
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.Dispatcher;
 
 #endif
 namespace Bwrx.Api
@@ -19,10 +22,11 @@ namespace Bwrx.Api
         private readonly string _newRelicInfoEventName;
         private readonly string _newRelicErrorEventName;
 
-        public BlockingDelegatingHandler(ClientConfigSettings clientConfigSettings)
+        public BlockingDelegatingHandler(ClientConfigSettings clientConfigSettings, HttpConfiguration httpConfiguration)
         {
             if (string.IsNullOrEmpty(clientConfigSettings.IpAddressHeaderName))
                 throw new ArgumentNullException(nameof(clientConfigSettings.IpAddressHeaderName));
+            InnerHandler = new HttpControllerDispatcher(httpConfiguration);
             _ipAddressHeaderName = clientConfigSettings.IpAddressHeaderName;
             _blockingHttpStatusCode = clientConfigSettings.BlockingHttpStatusCode;
             _passiveMode = clientConfigSettings.PassiveBlockingMode;
