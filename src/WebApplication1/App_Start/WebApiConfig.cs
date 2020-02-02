@@ -13,24 +13,33 @@ namespace WebApplication1
             // Web API routes
             config.MapHttpAttributeRoutes();
 
-            config.Routes.MapHttpRoute(
-                "DefaultApi",
-                "api/{controller}/{id}",
-                new {id = RouteParameter.Optional}
-            );
+            //config.Routes.MapHttpRoute(
+            //    "DefaultApi",
+            //    "api/{controller}/{id}",
+            //    new {id = RouteParameter.Optional}
+            //);
 
             var clientConfigSettings =
                 JsonConvert.DeserializeObject<ClientConfigSettings>(Resources.ClientConfigSettings);
 
-            var blockingDelegatingHandler = new BlockingDelegatingHandler(clientConfigSettings);
+            var blockingDelegatingHandler = new BlockingDelegatingHandler(clientConfigSettings, GlobalConfiguration.Configuration);
 
             blockingDelegatingHandler.CouldNotGetIpAddressHttpHeaderValues +=
                 BwrxDelegatingHandler_CouldNotGetIpAddressHttpHeaderValues;
             blockingDelegatingHandler.CouldNotParseIpAddressHttpHeaderValues +=
                 BwrxDelegatingHandler_CouldNotParseIpAddressHttpHeaderValues;
-            blockingDelegatingHandler.BlacklistedIpAddressDetected += BwrxDelegatingHandler_BlacklistedIpAddressDetected;
+            blockingDelegatingHandler.BlacklistedIpAddressDetected +=
+                BwrxDelegatingHandler_BlacklistedIpAddressDetected;
 
-            config.MessageHandlers.Add(blockingDelegatingHandler);
+            //config.MessageHandlers.Add(blockingDelegatingHandler);
+
+            config.Routes.MapHttpRoute(
+                name: "values",
+                routeTemplate: "api/values",
+                defaults: new { controller = "Values" },
+                constraints: null,
+                handler: blockingDelegatingHandler  // per-route message handler
+            );
         }
 
         private static void BwrxDelegatingHandler_BlacklistedIpAddressDetected(object sender,

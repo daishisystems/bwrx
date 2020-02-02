@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
+using NetTools;
 using Quartz;
 
 namespace Bwrx.Api
@@ -16,9 +18,35 @@ namespace Bwrx.Api
                 var whitelist = (Whitelist) dataMap[nameof(Whitelist)];
                 var latestWhitelist = await whitelist.GetLatestIndividualAsync();
                 var whitelistRanges = await whitelist.GetLatestRangesAsync();
+
+                foreach (var whitelistRange in whitelistRanges)
+                {
+                    bool canParse = IPAddressRange.TryParse(whitelistRange, out _);
+                    if (!canParse) throw new Exception("Invalid IP");
+                }
+
+                foreach (var ipaddress in latestWhitelist)
+                {
+                    bool canParse = IPAddress.TryParse(ipaddress, out _);
+                    if (!canParse) throw new Exception("Invalid IP");
+                }
+
                 whitelist.UpDate(latestWhitelist, whitelistRanges);
                 var latestBlacklist = await blacklist.GetLatestIndividualAsync();
                 var blacklistRanges = await blacklist.GetLatestRangesAsync();
+
+                foreach (var blacklistRange in blacklistRanges)
+                {
+                    bool canParse = IPAddressRange.TryParse(blacklistRange, out _);
+                    if (!canParse) throw new Exception("Invalid IP");
+                }
+
+                foreach (var ipaddress in latestBlacklist)
+                {
+                    bool canParse = IPAddress.TryParse(ipaddress, out _);
+                    if (!canParse) throw new Exception("Invalid IP");
+                }
+
                 blacklist.UpDate(latestBlacklist, blacklistRanges);
             }
             catch (Exception exception)

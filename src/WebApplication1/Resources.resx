@@ -118,9 +118,35 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ClientConfigSettings" xml:space="preserve">
-    <value />
+    <value>{
+	"ProjectId": "bwrx-dev",
+	"IpAddressHeaderName": "ipaddress",
+	"CloudFunctionHttpBaseAddress": " https://europe-west2-bwrx-dev.cloudfunctions.net/input-sit-0",
+	"BlacklistUri": "https://europe-west2-bwrx-dev.cloudfunctions.net/blacklist-sit-0",
+	"BlacklistCountUri": "https://europe-west2-bwrx-dev.cloudfunctions.net/recordcount-sit-0",
+	"BlacklistRangesUri": "https://europe-west2-bwrx-dev.cloudfunctions.net/blacklistranges-sit-0",
+	"GetBlacklistTimeInterval": 5,
+	"WhitelistUri": "https://europe-west2-bwrx-dev.cloudfunctions.net/whitelist-sit-0",
+	"WhitelistCountUri": "https://europe-west2-bwrx-dev.cloudfunctions.net/recordcount-sit-0",
+	"WhitelistRangesUri": "https://europe-west2-bwrx-dev.cloudfunctions.net/whitelistranges-sit-0",
+	"BlacklistIPAddressesTableName": "blacklistsit0",
+	"BlacklistIPAddressRangesTableName": "blacklistrangessit0",
+	"WhitelistIPAddressesTableName": "whitelistsit0",
+	"WhitelistIPAddressRangesTableName": "whitelistrangessit0"
+}</value>
   </data>
   <data name="Credentials" xml:space="preserve">
-    <value />
+    <value>{
+  "type": "service_account",
+  "project_id": "bwrx-dev",
+  "private_key_id": "d5102f250f1d02e94271df6383f52bcea3158dab",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCdqvWuHN+DIt+W\nU8me40jiagtDd19UujOo/al4W62pZscnqplbnfqIHCRMPck2ICOLljaO8wnntTDA\nwh6lGGkfPPQpk3IL24ijJpv2Q1L7KUI7IAC973PJilT+e0o1WZ/bvOogEiNidFZO\nAdzUenoQEI/CA/JIUY40s/9GEIQoR0v+uon47VQEkaG8G0DOyoGHhG1G9bGzdK24\nCxI9A4lISg12ymQQGL+w/N4h9GjjIOPivVi1qV9AAGYx/IzWmNxY69GvDY0K27lo\ngSYHFgGU6pNuloSZfjc4BL9RgJadIT+GjnoF8JV+FbUBxLZL4mO5ybTKTLkNAX65\nDYpUn6DRAgMBAAECggEARzKs18+1BRhJ5C349ZWIU6n0ZSZyN6YP7weBMFciAEXn\nuBtbPlqECFPA9mbORnFT69RM1dedSPNyzRC72uy/h7o0PdQV45HizV4Bfr7fKYjz\nnhRxEVQgssmTYQmWtKnAvO89wHbAYNTNJlPD/3VBSqDX8hJrJcoiT91acK7DpxX4\n/bH2L5fwYlm0rEeO2CWZpoDk57nCyvQBcCQXsXQJHwAJ9CW93tNGWk6s5lK8+vVK\ng6/UKNrzM+r8SQbA3H2A+Lkm4FXPlrgBPlw0oGlUOzn/XX7NVJQRhpArfxfGwz2K\nkl0AwE/htZMS03ibiEUyVbCgNjdDrtEacdbtOJ/QYwKBgQDaiLTXi/FEUKECD1p6\ncIDdX1+vW28t07IQbCagcqUqHoGCiHWh/RPQ/HY3g4Gvf44QVfMYoEcnQ0wYJSMD\nh5lSzlxqyUs0mS6ac7+7dUyGNO6TCimoOBEfgelQceU7kp1GIpcHDa5IktHf8mPY\nIwrbf9zbdwxof8Pm/Wpcs/RSYwKBgQC4suGsjCITOJYla76OFWn/0GP/ZsOjPycU\nVwrSolDjwQgeP1+nJ3RJICb39RITmcy1tO7TLxHU1JQW7j/HbsAIIIu/ELpJ1nxL\nfR94e37nC1BOXr2WKKji+VOclnmo6RjSHWWsiwtFjKMq56KnKYplmsczFOVkh15x\nsabc2vwMOwKBgDj0F+11E1Pyj4Ox7KqsV2laSd2xvq/61BVjmk2Gk3T+rlIOrlmh\nU2DL6yNcqpfKboPjYo+wddrNty8zvoRU+qiSD5PlEiyLH5IxSG7aiy8O7H51z5V/\nxzam7N+CT3PPKh31NdcowZs4aGotCchymYnLMQwhYqJ5adzxfp7aZ3pxAoGBAJou\n0g9NiCCNi2G/uPo5TBx+JQwPCGAdlwz2wJUnZOlLufAuLTaHzB5DVeSGU8nDCU3i\ntb/bukH2F42w49MjU/E04hPk7e43u9j0obHdPgm3uxlBI3jXhmy7gB3my7bCp7K3\nUaohBI7RoWBur6xmFB9PftzYo8ow6xl0GPyjXecDAoGBAKPVB2tAF9tWz/hjr4As\nC0hZVJRxafrWODGMoATUnG53v2PwSrYu3dIVmFVSIlvE6+IlWbfmLjLxel+0C2n1\nwEu6wHjZOnRaAD6UBL0jC7oP9SNSJcz56n451IQiTPGrnhGX+snHLi5010iVOgKX\nV2j2P6Nx4VOmRA/TYd47o2RH\n-----END PRIVATE KEY-----\n",
+  "client_email": "ryr-dev@bwrx-dev.iam.gserviceaccount.com",
+  "client_id": "110871594330766221214",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ryr-dev%40bwrx-dev.iam.gserviceaccount.com"
+}</value>
   </data>
 </root>

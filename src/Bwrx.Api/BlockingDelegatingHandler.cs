@@ -146,7 +146,7 @@ namespace Bwrx.Api
                     request.Headers.GetValues(_ipAddressHeaderName)));
                 return await base.SendAsync(request, cancellationToken);
             }
-
+            // todo: Can I whitelist CloudFront here? If so, will it catch associated bots?
             List<string> blacklistedIpAddresses;
             try
             {

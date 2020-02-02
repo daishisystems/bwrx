@@ -41,6 +41,7 @@ namespace WebApplication1
             Agent.Instance.GetEventMetadataPayloadBatchFailed += Instance_GetEventMetadataPayloadBatchFailed;
             Agent.Instance.GotEventMetadataPayloadBatch += Instance_GotEventMetadataPayloadBatch;
             Agent.Instance.JobSchedulerStartFailed += Instance_JobSchedulerStartFailed;
+            Agent.Instance.JobSchedulerShutdownFailed += Instance_JobSchedulerShutdownFailed;
             Agent.Instance.InitialisationFailed += Instance_InitialisationFailed;
             Agent.Instance.TransmissionFailed += Instance_TransmissionFailed;
             Agent.Instance.WhitelistAddIpAddressFailed += Instance_WhitelistAddIpAddressFailed;
@@ -49,8 +50,12 @@ namespace WebApplication1
             Agent.Instance.WhitelistGotLatestList += Instance_WhitelistGotLatestList;
             Agent.Instance.WhitelistIpAddressAdded += Instance_WhitelistIpAddressAdded;
             Agent.Instance.WhitelistListUpdated += Instance_WhitelistListUpdated;
-
             Agent.Instance.Start(credentials, config);
+        }
+
+        private static void Instance_JobSchedulerShutdownFailed(object sender, JobSchedulerShutdownFailedEventArgs e)
+        {
+            // ignore
         }
 
         private void Instance_WhitelistListUpdated(object sender, EventArgs e)

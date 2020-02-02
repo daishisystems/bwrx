@@ -61,7 +61,15 @@ namespace WebApplication1 {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to {
+        ///	&quot;ProjectId&quot;: &quot;bwrx-dev&quot;,
+        ///	&quot;IpAddressHeaderName&quot;: &quot;ipaddress&quot;,
+        ///	&quot;CloudFunctionHttpBaseAddress&quot;: &quot; https://europe-west2-bwrx-dev.cloudfunctions.net/input-sit-0&quot;,
+        ///	&quot;BlacklistUri&quot;: &quot;https://europe-west2-bwrx-dev.cloudfunctions.net/blacklist-sit-0&quot;,
+        ///	&quot;BlacklistCountUri&quot;: &quot;https://europe-west2-bwrx-dev.cloudfunctions.net/recordcount-sit-0&quot;,
+        ///	&quot;BlacklistRangesUri&quot;: &quot;https://europe-west2-bwrx-dev.cloudfunctions.net/blacklistranges-sit-0&quot;,
+        ///	&quot;GetBlacklistTimeInterval&quot;: 5,
+        ///	&quot;WhitelistUri&quot;: &quot;https://europe-we [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ClientConfigSettings {
             get {
@@ -70,7 +78,11 @@ namespace WebApplication1 {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to {
+        ///  &quot;type&quot;: &quot;service_account&quot;,
+        ///  &quot;project_id&quot;: &quot;bwrx-dev&quot;,
+        ///  &quot;private_key_id&quot;: &quot;d5102f250f1d02e94271df6383f52bcea3158dab&quot;,
+        ///  &quot;private_key&quot;: &quot;-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCdqvWuHN+DIt+W\nU8me40jiagtDd19UujOo/al4W62pZscnqplbnfqIHCRMPck2ICOLljaO8wnntTDA\nwh6lGGkfPPQpk3IL24ijJpv2Q1L7KUI7IAC973PJilT+e0o1WZ/bvOogEiNidFZO\nAdzUenoQEI/CA/JIUY40s/9GEIQoR0v+uon47VQEkaG8G0DOyoGHhG1G9bGzdK24\nCxI9A4lISg12ymQQGL+w/N4h9GjjIOPivVi1qV9AAGYx/IzWmNxY69GvDY0K27lo\ngSYHFgGU [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Credentials {
             get {

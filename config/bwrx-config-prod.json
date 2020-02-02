@@ -1,0 +1,15 @@
+{
+	"ProjectId": "bwrx-prod",
+	"BlockingHttpStatusCode": 403,
+	"HttpProxy": "{HTTP proxy address}",
+	"IpAddressHeaderName": "{IP address HTTP header name}",
+	"CloudFunctionHttpBaseAddress": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod",
+	"BlacklistUri": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod-blacklist-0",
+	"BlacklistCountUri": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod-record-count",
+	"BlacklistRangesUri": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod-blacklistranges-0",
+	"GetBlacklistTimeInterval": 180,
+	"WhitelistUri": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod-whitelist-0",
+	"WhitelistCountUri": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod-record-count",
+	"WhitelistRangesUri": "https://europe-west2-bwrx-prod.cloudfunctions.net/bwrx-prod-whitelistranges-0",
+	"MaxNumIpAddressesPerHttpRequest": 10000
+}
