@@ -1,0 +1,7 @@
+{
+  "name": "bwrx-prod",
+  "version": "0.0.1",
+  "dependencies": {
+    "@google-cloud/pubsub": "^0.28.1"
+  }
+}
