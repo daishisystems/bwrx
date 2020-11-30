@@ -1,0 +1,7 @@
+{
+  "name": " recordcount-dev-0",
+  "version": "0.0.1",
+  "dependencies": {
+    "mysql": "^2.16.0"
+  }
+}
